@@ -12,6 +12,32 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+
+'''
+    ##开启一个打印信息和错误的线程
+    with MultiThreadingManager() as thread_manager:    
+        try:
+            #开启num_thread个线程执行func(item,args,kwargs)函数，此时线程阻塞,
+            func_manager = thread_manager.queue_manager(func, num_threads,
+					*args, **kwargs)
+            func_queue = func_manager.queue 
+		    #当把对象放入队列，此时func才开始执行.
+            func_queue.put(param)
+	        #把信息加入正常信息队列，自动输出到错误流
+            thread_manager.print_msg("%d of thread 
+					call %s", num_threads, func.__name__)
+            #把信息加入错误信息队列, 自动输出到输出流
+            thread_manager.error("%d of thread 
+					call %s", num_threads, func.__name__)
+        except Exception as err:
+            had_error = thread_manager.error(str(err))
+    ###当遇到异常的或with执行完，全部线程退出.
+'''
+
+
+
+
 import sys
 from time import sleep
 from Queue import Queue

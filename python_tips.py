@@ -81,3 +81,76 @@ def plat():
     else:
         FatalVisibleError("Platform not supported")
 
+
+def mkdirs(path, overwrite=False):
+    from os import makedirs
+    from errno import EEXIST
+    try:
+        makedirs(path)
+    except OSError as err:
+        if err.errno == EEXIST:
+            if not overwrite:
+                print "path '%s' already exists" % path
+        else:
+            raise
+
+####################################################
+from optparse import OptionParser, SUPPRESS_HELP
+def CmdLineParse():   
+    """
+    命令行程序： from python-swiftclient
+    """
+    parser = OptionParser(version='%%prog %s' % version,
+                          usage = '''
+Usage: %%prog <command> [options] [args]
+.....
+'''.strip('\n') )
+    parser.add_option('-v', '--verbose', action='count', dest='verbose',
+            default=1, help='print more info')
+    parser.disable_interspersed_args()
+    (options, args) = parse_args(parser, argv[1:], enforce_requires=False)
+    parser.enable_interspersed_args()
+
+def encode_utf8(value):
+    if isinstance(value, unicode):
+        value = value.encode('utf8')
+    return value
+
+
+TRUE_VALUES = set(('true', '1', 'yes', 'on', 't', 'y'))
+def config_true_value(value):
+    """
+    Returns True if the value is either True or a string in TRUE_VALUES.
+    Returns False otherwise.
+    This function come from swift.common.utils.config_true_value()
+    """
+    return value is True or \
+        (isinstance(value, basestring) and value.lower() in TRUE_VALUES)
+
+
+def prt_bytes(bytes, human_flag):
+    """
+    convert a number > 1024 to printable format, either in 4 char -h format as
+    with ls -lh or return as 12 char right justified string
+    """
+
+    if human_flag:
+        suffix = ''
+        mods = 'KMGTPEZY'
+        temp = float(bytes)
+        if temp > 0:
+            while (temp > 1023):
+                temp /= 1024.0
+                suffix = mods[0]
+                mods = mods[1:]
+            if suffix != '':
+                if temp >= 10:
+                    bytes = '%3d%s' % (temp, suffix)
+                else:
+                    bytes = '%.1f%s' % (temp, suffix)
+        if suffix == '':    # must be < 1024
+            bytes = '%4s' % bytes
+    else:
+        bytes = '%12s' % bytes
+
+    return(bytes)
