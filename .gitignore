@@ -1,0 +1,10 @@
+WX/
+build/
+http/
+*.pyc
+*.pyo
+*.png
+*.doc
+*.ppt
+*.odg
+
