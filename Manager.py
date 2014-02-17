@@ -29,7 +29,8 @@ class Manager():
     """Main class for performing commands on groups of command.
        1.you can add method with @command decorate as method
        2.if the command success make the status not 0
-       then you can feel it so beautiful
+       3.you can add args in __init__ of  Manager more.
+       you can feel it so beautiful
     """
 
     def __init__(self, **kwargs):
@@ -60,6 +61,22 @@ class Manager():
 
         return status
 
+    def get_command(self, cmd):
+        """Find and return the decorated method named like cmd
+
+        :param cmd: the command to get, a string, if not found raises
+                    UnknownCommandError
+
+        """
+        cmd = cmd.lower().replace('-', '_')
+        try:
+            f = getattr(self, cmd)
+        #this handl the cmd without in the cmd list. +++
+        except AttributeError:
+            raise UnknownCommandError(cmd)
+        if not hasattr(f, 'publicly_accessible'):
+            raise UnknownCommandError(cmd)
+        return f
 
     @classmethod
     def list_commands(cls):
@@ -79,8 +96,8 @@ class Manager():
 
         :param cmd: the command name to run
         """
-        cmd = getattr(self,cmd)
-        return cmd(**kwargs)
+        f = self.get_command(cmd)
+        return f(**kwargs)
 
 def simple_main():
     command = "stop"
