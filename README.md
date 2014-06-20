@@ -1,1 +1,2 @@
-python tips which are common
+python cpp shell lua tips which can be re-use
+
