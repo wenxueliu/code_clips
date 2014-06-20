@@ -1,0 +1,8 @@
+#define DEFINE_check(x,NAME) \
+static MDB_##x* check_##x(lua_State *L, int index) { \
+MDB_##x* y; \
+luaL_checktype(L, index, LUA_TUSERDATA); \
+y = *(MDB_##x**)luaL_checkudata(L, index, NAME); \
+if (y == NULL) lua_type_error(L,index,NAME); \
+return y; \
+}
