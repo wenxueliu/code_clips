@@ -108,3 +108,64 @@ end
 
 --http://blog.csdn.net/dssdss123/article/details/10426119  
 
+
+--[[
+a = "a-b-c-d"
+table = split(a,"-") --table{"a","b","c","d"}
+
+]]--
+local function split(pString, pPattern)
+   local Table = {}  -- NOTE: use {n = 0} in Lua-5.0
+   local fpat = "(.-)" .. pPattern
+   local last_end = 1
+   local s, e, cap = pString:find(fpat, 1)
+   while s do
+      if s ~= 1 or cap ~= "" then
+        table.insert(Table,cap)
+      end
+      last_end = e+1
+      s, e, cap = pString:find(fpat, last_end)
+   end
+   if last_end <= #pString then
+      cap = pString:sub(last_end)
+      table.insert(Table, cap)
+   end
+   return Table
+end
+
+
+---几乎所有的类的 new 方法都如此，此外一个 init 方法进行初始化
+function test:new()
+	o = {}
+	setmetatable(o,self)
+	self.__index = self
+	return o
+end
+
+function test:init()
+-- 初始化
+end
+
+
+---table 切片，类似 python 的 list
+function table_slice (values,i1,i2)
+    local res = {}
+    local n = #values
+    -- default values for range
+    i1 = i1 or 1
+    i2 = i2 or n
+    if i2 < 0 then
+        i2 = n + i2 + 1
+    elseif i2 > n then
+        i2 = n
+    end
+    if i1 < 1 or i1 > n then
+        return {}
+    end
+    local k = 1
+    for i = i1,i2 do
+        res[k] = values[i]
+        k = k + 1
+    end
+    return res
+end
