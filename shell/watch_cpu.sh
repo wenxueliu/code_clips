@@ -51,7 +51,7 @@ proc_mem_top10()
 get_cpu_info()
 {
       cat /proc/stat | grep -i "^cpu[0-9]\+" | \
-	  awk '{used+=$2+$3+$4; unsed+=$5+$6+$7+$8}\
+	  awk '{used+=$2+$3+$4; unused+=$5+$6+$7+$8}\
 	     END{print used,unused}'
 }
 
@@ -60,7 +60,7 @@ get_cpu_info()
 #        0 : if less than $cpu_quta
 watch_cpu()
 {
-        time_point_1='get_cpu_info'
+    time_point_1='get_cpu_info'
 	sleep $time_gap
 	time_point_2='get_cpu_info'
 	cpu_usage=`echo $time_point_1 $time_point_2 | \
@@ -101,5 +101,5 @@ while true; do
     if [ -n $report ]; then
         echo  sendmessage phonenumber report
     fi
-    sleep $((runtime_gap-time_gap)) 
+    sleep $((runtime_gap - time_gap)) 
 done
