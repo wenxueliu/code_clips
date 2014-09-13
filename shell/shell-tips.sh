@@ -124,3 +124,24 @@ while true; do
 }
 
 #==================================================================
+
+在远程机器上运行一段脚本
+
+    ssh user@server bash < /path/to/local/script.sh
+
+比较一个远程文件和一个本地文件
+
+    ssh user@host cat /path/to/remotefile | diff /path/to/localfile -
+
+vim一个远程文件
+
+    vim scp://username@host//path/to/somefile
+
+一句话实现一个HTTP服务，把当前目录设为HTTP服务目录，可以通过http://localhost:8000访问。
+
+    python -m SimpleHTTPServer 
+
+
+查看最常用的十条命令 
+
+    history | awk '{CMD[$2]++;count++;} END { for (a in CMD )print CMD[a] " " CMD[a]/count*100 "% " a }' | grep -v "./" | column -c3 -s " " -t | sort -nr | nl | head -n10
