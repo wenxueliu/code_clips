@@ -28,6 +28,10 @@ function calculate_thoughput_by_proc()
             trans_thoughput=`expr $trans_end_bytes - $trans_begin_bytes`
             trans_package_cnt=`expr $trans_end_pack_index - $trans_begin_pack_index`
 
+            if [ $3 ]; then
+            {
+                echo $recv_thoughput,$recv_package_cnt,$trans_thoughput,$trans_package_cnt" >> $4
+            }
             echo "Recv/Bytes " $recv_thoughput "Packets:" $recv_package_cnt "Trans/Bytes" $trans_thoughput "Packets:" $trans_package_cnt
         done
     else
