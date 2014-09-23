@@ -11,6 +11,9 @@ function calculate_thoughput_by_proc()
     if [ $1 ]; then
         gap_secs=$2
         gap_secs=${gap_secs:=1}
+        if [ $3 ]; then
+            echo "Recv,Packet,Trans,Packet" >> $4
+        fi
         while true
         do
             recv_begin_bytes=`cat /proc/net/dev | grep $1 | awk '{ print $2}'`
@@ -29,9 +32,8 @@ function calculate_thoughput_by_proc()
             trans_package_cnt=`expr $trans_end_pack_index - $trans_begin_pack_index`
 
             if [ $3 ]; then
-            {
-                echo $recv_thoughput,$recv_package_cnt,$trans_thoughput,$trans_package_cnt" >> $4
-            }
+                echo "$recv_thoughput,$recv_package_cnt,$trans_thoughput,$trans_package_cnt" >> $4
+            fi
             echo "Recv/Bytes " $recv_thoughput "Packets:" $recv_package_cnt "Trans/Bytes" $trans_thoughput "Packets:" $trans_package_cnt
         done
     else
@@ -50,6 +52,9 @@ function calculate_thoughput_by_sysfs()
     if [ $1 ]; then
         gap_secs=$2
         gap_secs=${gap_secs:=1}
+        if [ $3 ]; then
+            echo "Recv,Packet,Trans,Packet" >> $4
+        fi
         while true
         do
             recv_begin_bytes=`cat /sys/class/net/$1/statistics/rx_bytes`
@@ -67,6 +72,9 @@ function calculate_thoughput_by_sysfs()
             trans_thoughput=`expr $trans_end_bytes - $trans_begin_bytes`
             trans_package_cnt=`expr $trans_end_pack_index - $trans_begin_pack_index`
 
+            if [ $3 ]; then
+                echo "$recv_thoughput,$recv_package_cnt,$trans_thoughput,$trans_package_cnt" >> $4
+            fi
             echo "Recv/Bytes " $recv_thoughput "Packets:" $recv_package_cnt "Trans/Bytes" $trans_thoughput "Packets:" $trans_package_cnt
         done
     else
@@ -74,7 +82,7 @@ function calculate_thoughput_by_sysfs()
     fi
 }
 
-get_eth_by_proc
-get_eth_by_sysfs
-#calculate_thoughput_by_proc wlan0
-calculate_thoughput_by_sysfs wlan0
+#get_eth_by_proc
+#get_eth_by_sysfs
+calculate_thoughput_by_proc $1 
+#calculate_thoughput_by_sysfs wlan0
