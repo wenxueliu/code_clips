@@ -1,0 +1,58 @@
+#! /usr/bin/env bash
+
+PARALLEL=3
+TMPFILE=$$.fifo
+CMD_CFG=./cfg/ptest.cfg
+FAILURE_FLAG=failure.log
+
+function trap_exit
+{
+    kill -9 0
+}
+
+exec_cmd()
+{
+    sleep ${1}
+
+    if [ $? -ne 0 ]
+    then
+        echo "exec error"
+        return 1
+    fi
+}
+
+trap 'trap_exit; exit 2' 1,2,3,15
+
+rm -f ${FAILURE_FLAG}
+
+mkfifo $TMPFILE
+
+exec 4<>$TMPFILE
+
+rm -f $TMPFILE
+
+{
+    count=$PARALLEL
+    while [ $count -gt 0 ]
+    do
+        echo 
+        let count=$count-1;
+    done
+} >&4
+
+while read SEC
+do
+    read <& 4
+    (exec_cmd ${SEC} || echo ${SEC} >> ${FAILURE_FLAG}; echo  >&4)&
+done<$CMD_CFG
+
+wait
+
+exec 4>& -
+
+if [ -f ${FAILURE_FLAG} ]
+then
+    exit 1
+else 
+    exit 0
+fi
