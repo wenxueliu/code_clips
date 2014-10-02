@@ -1,0 +1,42 @@
+#! /usr/bin/env bash
+
+random1=$((date +%s))
+
+randmo2=$((date +%N))
+
+random3=$((date +%s%N))
+
+random4=$RANDMO
+
+random5=$((head -200 /dev/urandom | cksum | cut -f1 -d" "))
+
+random6=$((cat /proc/sys/kernel/random/uuid))
+
+echo $random1
+echo $random2
+echo $random3
+echo $random4
+echo $random5
+echo $random6
+
+#写个随机函数，调用方法random min max
+#在min 与 max直接获得随机整数
+#获得随机数返回值，shell函数里算出随机数后，更新该值
+function random()
+{
+    min=$1;
+    max=$2-$1;
+    num=$(date +%s+%N);
+    ((retnum=num%max+min));
+    #进行求余数运算即可
+    echo $retnum;
+    #这里通过echo 打印出来值，然后获得函数的，stdout就可以获得值
+    #还有一种返回，定义全价变量，然后函数改下内容，外面读取
+}
+
+#得到1-10的seq数据项
+for i in {1..10};
+do
+    out=$(random 2 10000);
+    echo $i,"2-10000",$out;
+done;
