@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="test" default="compile">
+    <description>My first complete build file, including packaging and executing a Java program.</description>
+    <target name="init" description="Create the output directories">
+        <mkdir dir="src/org/wenxueliu/test"/>
+        <mkdir dir="build/classes"/>
+        <mkdir dir="dist"/>
+    </target>
+
+    <target name="compile" depends="init" description="Compiles into the output directories">
+        <javac srcdir="src" debug="true" destdir="build/classes" includeantruntime="false"></javac>
+    </target>
+
+    <target name="package" depends="compile" description="Creates the JAR package files">
+        <jar destfile="dist/test.jar" basedir="build/classes"></jar>
+    </target>
+
+    <target name="clean" description="Delete the output directories">
+        <delete dir="build"/>
+        <delete dir="dist"/>
+    </target>
+    <target name="exec" depends="compile" description="Running programs under Ant">
+        <!-- $ java -cp build/classes org.cheungmine.study.Main hello world . -->
+        <java classname="org.wenxueliu.test.Example" classpath="build/classes">
+            <arg value="hello"/>
+            <arg value="world"/>
+            <!-- 
+                the following arg uses the file attribute, which tells Ant to resolve 
+                that attribute to an absolute file location before calling the program.
+            -->
+            <arg file="."/>
+        </java>
+        <!--
+        <echo level="verbose" message="running"/>
+        <echo level="info" message="running"/>
+        <echo level="warning" message="running"/>
+        <echo level="error" message="running"/>
+        -->
+    </target>
+</project>
+
