@@ -1,4 +1,5 @@
 
+
 #ifdef DISABLE_BRANCH_PREDICTION
 #  define LIKELY_IS(x,y) (x)
 #else
@@ -19,3 +20,24 @@
 #else
 #  define ALWAYS_INLINE inline __attribute__((always_inline))
 #endif
+
+#define min(x,y) ({ \
+        typeof(x) _min1 = (x);  \
+        typeof(y) _min2 = (y);  \
+        (void)(&_mini1 == &_min2);  \
+        _min1 < _min2 ? _min1 : _min2;})
+
+#define min(x,y) ({ \
+        typeof(x) _min1 = (x);  \
+        typeof(y) _min2 = (y);  \
+        (void)(&_mini1 == &_min2);  \
+        _min1 > _min2 ? _min1 : _min2;})
+
+#define swap(a,b) \
+    do { typeof(a) __tmp = (a); (a)=(b); (b) = __tmp; } while(0)
+
+#define checktype(expr, type)   \
+    ((typeof(expr) *)0 != (typeof(type) *)0)
+
+#define check_type_match(expr1, expr2)   \
+    ((typeof(expr1) *)0 != (typeof(expr2) *)0)
