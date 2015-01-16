@@ -7,6 +7,7 @@ import java.util.Map;
 import java.lang.IndexOutOfBoundsException;
 import java.lang.Exception;
 import org.wenxueliu.annotations.AnnotationParsing;
+import org.wenxueliu.fileiterators.TextFile;
 /**
  *
  */
@@ -30,6 +31,14 @@ public class Example {
 
     public static void AnnotationTest(){
         AnnotationParsing.parseMethodInfo();
+    }
+
+    public static void FileIteratorTest(String filename){
+
+        //使用增强for循环进行文件的读取
+        for(String line:new TextFile(filename)){
+            System.err.println(line);
+        }
     }
 
 	/**
@@ -63,6 +72,10 @@ public class Example {
 
         System.out.println("------ AnnotationTest --------");
         AnnotationTest();
+
+        System.out.println("------ FileIteratorTest --------");
+
+        FileIteratorTest("/home/wenxueliu/dic.txt");
 	}
 
 }
