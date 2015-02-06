@@ -22,6 +22,7 @@ import org.wenxueliu.collection.ListTest;
 import org.wenxueliu.concurrent.ThreadSyn;
 import org.wenxueliu.concurrent.InsertData;
 import org.wenxueliu.concurrent.ThreadLock;
+import org.wenxueliu.concurrent.LinkedBlockingQueueExample;
 import org.wenxueliu.demotask.DemoExecutor;
 /**
  *
@@ -32,6 +33,10 @@ import org.wenxueliu.demotask.DemoExecutor;
  *
  */
 public class Example {
+
+    void LinkedBlockingQueueExampleTest() {
+        LinkedBlockingQueueExample.example();
+    }
 
     void DemoExecutorTest() {
         DemoExecutor de = new DemoExecutor();
@@ -329,7 +334,8 @@ public class Example {
         //e.listLoopTest();
         //e.ThreadSynTest();
         //e.ThreadLockTest();
-        e.DemoExecutorTest();
+        //e.DemoExecutorTest();
+        e.LinkedBlockingQueueExampleTest();
 
 	}
 
