@@ -9,6 +9,7 @@ import java.util.Map;
 import java.lang.IndexOutOfBoundsException;
 import java.lang.Exception;
 import java.lang.ref.WeakReference;
+import java.util.concurrent.TimeUnit;
 import org.wenxueliu.annotations.AnnotationParsing;
 import org.wenxueliu.fileiterators.TextFile;
 import org.wenxueliu.interclass.EnumTest;
@@ -18,6 +19,10 @@ import org.wenxueliu.reference.ReferenceExample;
 import org.wenxueliu.reference.ReferenceExample.Host;
 import org.wenxueliu.collection.HashMapTest;
 import org.wenxueliu.collection.ListTest;
+import org.wenxueliu.concurrent.ThreadSyn;
+import org.wenxueliu.concurrent.InsertData;
+import org.wenxueliu.concurrent.ThreadLock;
+import org.wenxueliu.demotask.DemoExecutor;
 /**
  *
  */
@@ -28,8 +33,76 @@ import org.wenxueliu.collection.ListTest;
  */
 public class Example {
 
+    void DemoExecutorTest() {
+        DemoExecutor de = new DemoExecutor();
+        de.example();
+    }
+    void ThreadLockTest() {
+        final ThreadLock tl = new ThreadLock();
+        System.out.println("------ ThreadLockTest --------");
+        tl.testLocalLock();
+        try {
+            TimeUnit.SECONDS.sleep(3);
+        } catch(InterruptedException e) {
+            //No-op
+        }
+        System.out.println("-- testGlobalLock --");
+        tl.testGlobalLock();
+        try {
+            TimeUnit.SECONDS.sleep(3);
+        } catch(InterruptedException e) {
+            //No-op
+        }
+
+        System.out.println("-- testTryLock --");
+        tl.testTryLock();
+        try {
+            TimeUnit.SECONDS.sleep(3);
+        } catch(InterruptedException e) {
+            //No-op
+        }
+        System.out.println("-- testInterruptLock --");
+        tl.testInterruptLock();
+        try {
+            TimeUnit.SECONDS.sleep(5);
+        } catch(InterruptedException e) {
+            //No-op
+        }
+        System.out.println("-- testSynchronizedGet --");
+        tl.testSynchronizedGet();
+        try {
+            TimeUnit.SECONDS.sleep(3);
+        } catch(InterruptedException e) {
+            //No-op
+        }
+        System.out.println("-- testReentrantReadWriteLockGet --");
+        tl.testReentrantReadWriteLockGet();
+    }
+
+    void ThreadSynTest() {
+        ThreadSyn ts = new ThreadSyn();
+        System.out.println("------ ThreadSynTest --------");
+        System.out.println("------------ normal Test ------------");
+        ts.test();
+        try {
+            TimeUnit.SECONDS.sleep(3);
+        } catch(InterruptedException e) {
+            //No-op
+        }
+        System.out.println("------------ synchronized Test ------------");
+        ts.testSyn();
+        try {
+            TimeUnit.SECONDS.sleep(3);
+        } catch(InterruptedException e) {
+            //No-op
+        }
+        System.out.println("------------ synchronized static Test ------------");
+        ts.testStaticSyn();
+    }
+
     void listLoopTest() {
         ListTest listTest = new ListTest();
+        System.out.println("------ listLoopTest --------");
         listTest.TestList(100);
         listTest.TestList(1000);
         listTest.TestList(10000);
@@ -243,17 +316,20 @@ public class Example {
             ex.printStackTrace();
         }
 
-        e.AnnotationTest();
-        e.FileIteratorTest("/home/wenxueliu/dic.txt");
-        e.interclassTest();
-        e.ThrowTest();
+        //e.AnnotationTest();
+        //e.FileIteratorTest("/home/wenxueliu/dic.txt");
+        //e.interclassTest();
+        //e.ThrowTest();
         //e.HashMapTest();
         //e.HashSetVsArrayList();
         //e.ReferenceTest();
         //e.ArrayListToString() ;
         //e.StringCompare();
         //e.ListHashMap();
-        e.listLoopTest();
+        //e.listLoopTest();
+        //e.ThreadSynTest();
+        //e.ThreadLockTest();
+        e.DemoExecutorTest();
 
 	}
 
