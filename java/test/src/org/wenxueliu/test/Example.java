@@ -108,6 +108,20 @@ public class Example {
         }
         System.out.println("------------ synchronized static Test ------------");
         ts.testStaticSyn();
+        try {
+            TimeUnit.SECONDS.sleep(3);
+        } catch(InterruptedException e) {
+            //No-op
+        }
+		System.out.println("------------ CountDownLatchTest Test ------------");
+		ts.CountDownLatchTest();
+		try {
+            TimeUnit.SECONDS.sleep(3);
+        } catch(InterruptedException e) {
+            //No-op
+        }
+		System.out.println("------------  CyclicBarrierTest ------------");
+		ts.CyclicBarrierTest();
     }
 
     void listLoopTest() {
@@ -282,6 +296,30 @@ public class Example {
         EnumTest.info();
     }
 
+    void ExceptionTest() {
+        System.out.println("------ Exception Test --------");
+
+        List<String> list = new ArrayList<String>();
+        //List<String> list = null;
+        try {
+            TestException(list);
+        } catch (Exception ex) {
+            System.out.println("IndexOutOfBoundsException exception");
+            ex.printStackTrace();
+        }
+    }
+
+    void RefCopyTest() {
+		Map <String, ArrayList<String>> map = new HashMap<String, ArrayList<String>>();
+		ArrayList<String> array = new ArrayList<String>();
+		array.add("abc");
+		map.put("2", array);
+		map.put("1", new ArrayList<String>(Arrays.asList("cde")));
+		System.out.println(map.get("1").toString());
+		map.get("1").add("bcd");
+		System.out.println(map.get("1").toString());
+    }
+
     //public void StatusTest(){
     //    System.out.println("------ StatusTest  --------");
     //    StatusExample1 st = new StatusExample1(StatusExample1.Process.STATUS_OPEN);
@@ -301,31 +339,8 @@ public class Example {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-        for(int i=0; i<args.length; i++) {
-            System.out.println(args[i]);
-        }
-		Map <String, ArrayList<String>> map = new HashMap<String, ArrayList<String>>();
-		ArrayList<String> array = new ArrayList<String>();
-		array.add("abc");
-		map.put("2", array);
-		map.put("1", new ArrayList<String>(Arrays.asList("cde")));
-		System.out.println(map.get("1").toString());
-		map.get("1").add("bcd");
-		System.out.println(map.get("1").toString());
-
-        System.out.println("------ Exception Test --------");
         Example e = new Example();
-
-        List<String> list = new ArrayList<String>();
-        //List<String> list = null;
-        try {
-            e.TestException(list);
-        } catch (Exception ex) {
-            System.out.println("IndexOutOfBoundsException exception");
-            ex.printStackTrace();
-        }
-
+        //e.RefCopyTest();
         //e.AnnotationTest();
         //e.FileIteratorTest("/home/wenxueliu/dic.txt");
         //e.interclassTest();
@@ -337,12 +352,11 @@ public class Example {
         //e.StringCompare();
         //e.ListHashMap();
         //e.listLoopTest();
-        //e.ThreadSynTest();
+        e.ThreadSynTest();
         //e.ThreadLockTest();
         //e.DemoExecutorTest();
         //e.LinkedBlockingQueueExampleTest();
-        e.ThreadBasicTest();
-
+        //e.ThreadBasicTest();
 	}
 
 }
