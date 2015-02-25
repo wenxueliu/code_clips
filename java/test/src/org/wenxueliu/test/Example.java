@@ -1,9 +1,9 @@
 package org.wenxueliu.test;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.HashMap; import java.util.HashSet;
 import java.util.UUID;
 import java.util.Map;
 import java.lang.IndexOutOfBoundsException;
@@ -352,11 +352,203 @@ public class Example {
         //e.StringCompare();
         //e.ListHashMap();
         //e.listLoopTest();
-        e.ThreadSynTest();
+        //e.ThreadSynTest();
         //e.ThreadLockTest();
         //e.DemoExecutorTest();
         //e.LinkedBlockingQueueExampleTest();
         //e.ThreadBasicTest();
+        e.testNode();
 	}
 
+    public void testNode() {
+        ArrayList<Integer> ips = new ArrayList<Integer>();
+        ips.add(19216811);
+        ips.add(19216812);
+        ips.add(19216813);
+        Node root = new Node(2);
+        Node1 root1 = new Node1(2, 32);
+        for (int ip: ips) {
+            String str = Integer.toBinaryString(ip);
+            String zeroStr = "00000000000000000000000000000000";
+            str = zeroStr.substring(0, (32-str.length())) + str;
+            System.out.println(str + " from " + ip);
+            root = insert(root, str, 0);
+            root1 = insert(root1, str, 0, 32);
+        }
+
+        //HashMap<Integer, ArrayList<Integer>> tree = new HashMap<Integer, ArrayList<Integer>>();
+        //dumpNodes(null, 0, tree);
+        HashMap<Integer, ArrayList<String>> tree1 = new HashMap<Integer, ArrayList<String>>();
+        dumpNodes(root1, 0, tree1);
+    }
+
+
+    public class Node1 {
+        private Node1 leftChild;
+        private Node1 rightChild;
+        private int value;
+        private int index;
+
+        Node1 (int data, int index) {
+            this.leftChild = null;
+            this.rightChild = null;
+            this.value = data;
+            this.index = index;
+        }
+    }
+
+    public Node1 insert(Node1 node, String str, int level, int index) {
+        if (node == null) {
+            node = new Node1(0, index);
+        }
+        if (level == 32) {
+            node.value = 1;
+            return node;
+        }
+
+        //System.out.println("node.value" + node.value + "node.index:" + node.index);
+        if (str.charAt(level) == '0') {
+            node.leftChild = insert(node.leftChild, str, level + 1, index - 1);
+        } else {
+            node.rightChild= insert(node.rightChild, str, level + 1, index + 1);
+        }
+
+        if (node.leftChild != null && node.leftChild.value == 1 && node.rightChild != null && node.rightChild.value == 1) {
+            node.value = 1;
+        }
+        return node;
+    }
+
+    public void traveNodes(Node1 node, int level, HashMap<Integer, ArrayList<String>> tree) {
+        if (node == null) {
+            return;
+        } else {
+            if (tree.get(level) == null) {
+                tree.put(level, new ArrayList<String>());
+                tree.get(level).add(node.value + ":" + node.index);
+            } else {
+                tree.get(level).add(node.value + ":" + node.index);
+            }
+            traveNodes(node.leftChild, level+1, tree);
+            traveNodes(node.rightChild, level+1, tree);
+        }
+    }
+
+    public void dumpNodes(Node1 node, int level, HashMap<Integer, ArrayList<String>> tree) {
+        traveNodes(node, level, tree);
+        String padding = String.format("%0" + 64 + "d", 0).replace("0"," ");
+        for (int dep = 0; dep < 33; dep++) {
+            StringBuilder line = new StringBuilder();
+            line.append(padding);
+            //System.out.println("b" + line.toString() + "end");
+            for (String str : tree.get(dep)) {
+                String value = str.split(":")[0];
+                String index = str.split(":")[1];
+                //System.out.println("value:" + value + "index" + index);
+                line.setCharAt(Integer.valueOf(index),value.charAt(0));
+            }
+            System.out.println(line);
+        }
+    }
+
+
+    public class Node {
+        Node leftChild;
+        Node rightChild;
+        int value;
+
+        Node (int data) {
+            leftChild = null;
+            rightChild = null;
+            value = data;
+        }
+    }
+
+    public Node insert(Node node, String str, int level) {
+        if (node == null) {
+            node = new Node(0);
+        }
+        if (level == 32) {
+            node.value = 1;
+            return node;
+        }
+
+        if (str.charAt(level) == '0') {
+            node.leftChild = insert(node.leftChild, str, level+1);
+        } else {
+            node.rightChild= insert(node.rightChild, str, level+1);
+        }
+
+        if (node.leftChild != null && node.leftChild.value == 1 && node.rightChild != null && node.rightChild.value == 1) {
+            node.value = 1;
+        }
+        return node;
+    }
+
+    public void traveNodes(Node node, int level, HashMap<Integer, ArrayList<Integer>> tree) {
+        if (node == null) {
+            if (tree.get(level) == null) {
+                tree.put(level, new ArrayList<Integer>());
+                tree.get(level).add(2);
+            } else {
+                tree.get(level).add(2);
+            }
+            return;
+        } else {
+            if (tree.get(level) == null) {
+                tree.put(level, new ArrayList<Integer>());
+                tree.get(level).add(node.value);
+            } else {
+                tree.get(level).add(node.value);
+            }
+            traveNodes(node.leftChild, level+1, tree);
+            traveNodes(node.rightChild, level+1, tree);
+        }
+    }
+
+    public void dumpNodes(Node node, int level, HashMap<Integer, ArrayList<Integer>> tree) {
+        traveNodesV1(node, level, tree);
+        int depth = 7;
+        int len = 1 << depth;
+        String padding = String.format("%0" + len + "d", 0).replace("0"," ");
+        System.out.println("str:" + padding.length() + "end");
+        for (int dep = 0; dep < depth - 1; dep++) {
+            StringBuilder line = new StringBuilder();
+            line.append(padding.substring(0, (1 << (depth - dep - 2)) - 1));
+            for (Integer i:tree.get(dep)) {
+                line.append(i);
+                line.append(padding.substring(0, (1 << (depth - dep - 1)) - 1));
+            }
+            System.out.println(line);
+        }
+    }
+
+    public void traveNodesV1(Node node, int level, HashMap<Integer, ArrayList<Integer>> tree) {
+        if (node == null) {
+            if (tree.get(level) == null) {
+                tree.put(level, new ArrayList<Integer>());
+                tree.get(level).add(2);
+            } else {
+                tree.get(level).add(2);
+            }
+            //return;
+            if (level == 5) {
+                return;
+            }
+            traveNodes(null, level+1, tree);
+            traveNodes(null, level+1, tree);
+        } else {
+            if (tree.get(level) == null) {
+                tree.put(level, new ArrayList<Integer>());
+                tree.get(level).add(node.value);
+            } else {
+                tree.get(level).add(node.value);
+            }
+            if (level == 5) {
+                return;
+            }
+            traveNodes(node.leftChild, level+1, tree);
+            traveNodes(node.rightChild, level+1, tree);
+        }
+    }
 }
