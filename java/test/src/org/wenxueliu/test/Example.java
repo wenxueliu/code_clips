@@ -10,6 +10,9 @@ import java.lang.IndexOutOfBoundsException;
 import java.lang.Exception;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.TimeUnit;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
 import org.wenxueliu.annotations.AnnotationParsing;
 import org.wenxueliu.fileiterators.TextFile;
 import org.wenxueliu.interclass.EnumTest;
@@ -362,12 +365,28 @@ public class Example {
 
     public void testNode() {
         ArrayList<Integer> ips = new ArrayList<Integer>();
-        ips.add(19216811);
-        ips.add(19216812);
-        ips.add(19216813);
+        try {
+            System.out.println(ConvertIPStrToInt("127.0.0.1") + "==" + 2130706433);
+            System.out.println(ConvertIPIntToStr(2130706433) + "==" + "127.0.0.1");
+            System.out.println((long)(ConvertIPStrToInt("255.255.255.255")&0xffffffff) );//+ "==" + 4294967295);
+
+            ips.add(ConvertIPStrToInt("192.168.1.1"));
+            ips.add(ConvertIPStrToInt("192.168.1.2"));
+            ips.add(ConvertIPStrToInt("192.168.1.3"));
+            ips.add(ConvertIPStrToInt("192.168.1.4"));
+            ips.add(ConvertIPStrToInt("192.168.1.5"));
+            ips.add(ConvertIPStrToInt("192.168.1.6"));
+            ips.add(ConvertIPStrToInt("192.168.1.7"));
+            //ips.add(ConvertIPStrToInt("192.168.1.8"));
+        } catch (UnknownHostException e){
+            e.printStackTrace();
+        }
+
+        //ips.add(19216812);
+        //ips.add(19216813);
         Node root = new Node(2);
         Node1 root1 = new Node1(2, 32);
-        for (int ip: ips) {
+        for (Integer ip: ips) {
             String str = Integer.toBinaryString(ip);
             String zeroStr = "00000000000000000000000000000000";
             str = zeroStr.substring(0, (32-str.length())) + str;
@@ -380,6 +399,15 @@ public class Example {
         //dumpNodes(null, 0, tree);
         HashMap<Integer, ArrayList<String>> tree1 = new HashMap<Integer, ArrayList<String>>();
         dumpNodes(root1, 0, tree1);
+
+        //char[] path = new char[32];
+        //preOrderTraverse(root1.leftChild, path, '0', 0);
+        //preOrderTraverse(root1.rightChild, path, '1', 0);
+
+        String[] path = new String[32];
+        preOrderTraverse(root1.leftChild, path, "0", 0);
+        preOrderTraverse(root1.rightChild, path, "1", 0);
+
     }
 
 
@@ -450,6 +478,66 @@ public class Example {
             System.out.println(line);
         }
     }
+
+    private String binToIP(String binIP) {
+        //StringBuilder strIP = new StringBuilder();
+        //strIP.append(Integer.valueOf(binIP.substring(0, 8), 2) & 0xff).append(".")
+        //     .append(Integer.valueOf(binIP.substring(8, 16), 2) & 0xff).append(".")
+        //     .append(Integer.valueOf(binIP.substring(16, 24), 2) & 0xff).append(".")
+        //     .append(Integer.valueOf(binIP.substring(24, 32), 2) & 0xff);
+        //return strIP.toString();
+        String strIP = new String();
+        //System.out.println(binIP + Integer.valueOf("000001001", 2));
+        strIP = String.valueOf(Integer.valueOf(binIP.substring(0, 8), 2) & 0xff) + ".";
+        strIP += String.valueOf(Integer.valueOf(binIP.substring(8, 16), 2) & 0xff) + ".";
+        strIP += String.valueOf(Integer.valueOf(binIP.substring(16, 24), 2) & 0xff) + ".";
+        strIP += String.valueOf(Integer.valueOf(binIP.substring(24, 32), 2) & 0xff);
+        return strIP;
+    }
+
+    public void preOrderTraverse(Node1 node,char[] path, char value, int level) {
+        if (node == null || level == 32) {
+            return;
+        }
+        path[level] = value;
+        if (node.value == 1) {
+            //String padding = String.format("%0" + 32 + "d", 0).replace("0","0");
+            String zeroStr="00000000000000000000000000000000";
+            //System.out.println(String.valueOf(path) + level);
+            //System.out.println(zeroStr.substring(0, 32 - level));
+            String ip = binToIP(String.valueOf(Arrays.copyOf(path, level)) + zeroStr.substring(0, 31 - level));
+            System.out.println(ip);
+            return;
+        }
+        preOrderTraverse(node.leftChild, path, '0', level + 1);
+        preOrderTraverse(node.rightChild, path, '1', level + 1);
+    }
+
+    public void preOrderTraverse(Node1 node,String[] path, String value, int level) {
+        if (node == null || level == 32) {
+            return;
+        }
+        path[level] = value;
+        //System.out.println("path[level]" + value + "level " + level);
+        if (node.value == 1) {
+            //String padding = String.format("%0" + 32 + "d", 0).replace("0","0");
+            String t = "";
+            for (int i = 0; i <= level; i++) {
+                t += path[i];
+            }
+            String zeroStr="00000000000000000000000000000000";
+            //System.out.println(String.valueOf(path) + level);
+            System.out.println("level " + level + " " + t);
+            //System.out.println(zeroStr.substring(0, 32 - level));
+            String ip = binToIP(t + zeroStr.substring(0, 31 - level)) + "/" + (level+1);
+            System.out.println(ip);
+            return;
+        }
+        preOrderTraverse(node.leftChild, path, "0", level + 1);
+        preOrderTraverse(node.rightChild, path, "1", level + 1);
+    }
+
+
 
 
     public class Node {
@@ -550,5 +638,34 @@ public class Example {
             traveNodes(node.leftChild, level+1, tree);
             traveNodes(node.rightChild, level+1, tree);
         }
+    }
+
+    private int pack(byte[] bytes) {
+      int val = 0;
+      for (int i = 0; i < bytes.length; i++) {
+          val <<= 8;
+          val |= bytes[i] & 0xff;
+        }
+      return val;
+    }
+
+    // dottedStrin as 127.0.0.1
+    public int ConvertIPStrToInt(String dottedString) throws UnknownHostException {
+        //return pack(InetAddress.getByName(dottedString).getAddress());
+        return ByteBuffer.wrap(InetAddress.getByName(dottedString).getAddress()).getInt();
+    }
+
+    private byte[] unpack(int bytes) {
+      return new byte[] {
+          (byte)((bytes >>> 24) & 0xff),
+          (byte)((bytes >>> 16) & 0xff),
+          (byte)((bytes >>>  8) & 0xff),
+          (byte)((bytes       ) & 0xff)
+        };
+    }
+
+    public String ConvertIPIntToStr(int packedBytes) throws UnknownHostException {
+        //return InetAddress.getByAddress(unpack(packedBytes)).getHostAddress();
+        return InetAddress.getByName(String.valueOf(packedBytes)).getHostAddress();
     }
 }
