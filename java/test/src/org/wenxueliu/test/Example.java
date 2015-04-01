@@ -27,6 +27,7 @@ import org.wenxueliu.concurrent.InsertData;
 import org.wenxueliu.concurrent.ThreadLock;
 import org.wenxueliu.concurrent.LinkedBlockingQueueExample;
 import org.wenxueliu.concurrent.ThreadTest;
+import org.wenxueliu.concurrent.MyThreadLocal;
 import org.wenxueliu.demotask.DemoExecutor;
 /**
  *
@@ -38,7 +39,10 @@ import org.wenxueliu.demotask.DemoExecutor;
  */
 public class Example {
 
-    void ThreadBasicTest(){
+    void ThreadLocalTest() {
+        MyThreadLocal.LocalTest();
+    }
+    void ThreadBasicTest() {
         ThreadTest test = new ThreadTest();
         test.testSelf();
     }
@@ -360,7 +364,8 @@ public class Example {
         //e.DemoExecutorTest();
         //e.LinkedBlockingQueueExampleTest();
         //e.ThreadBasicTest();
-        e.testNode();
+        //e.testNode();
+        e.ThreadLocalTest();
 	}
 
     public void testNode() {
@@ -377,6 +382,15 @@ public class Example {
             ips.add(ConvertIPStrToInt("192.168.1.5"));
             ips.add(ConvertIPStrToInt("192.168.1.6"));
             ips.add(ConvertIPStrToInt("192.168.1.7"));
+            ips.add(ConvertIPStrToInt("192.168.1.8"));
+            ips.add(ConvertIPStrToInt("192.168.1.9"));
+            ips.add(ConvertIPStrToInt("192.168.1.10"));
+            ips.add(ConvertIPStrToInt("192.168.1.11"));
+            ips.add(ConvertIPStrToInt("192.168.1.12"));
+            ips.add(ConvertIPStrToInt("192.168.1.13"));
+            ips.add(ConvertIPStrToInt("192.168.1.14"));
+            ips.add(ConvertIPStrToInt("192.168.1.15"));
+            ips.add(ConvertIPStrToInt("192.168.1.16"));
             //ips.add(ConvertIPStrToInt("192.168.1.8"));
         } catch (UnknownHostException e){
             e.printStackTrace();
