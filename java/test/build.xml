@@ -1,27 +1,73 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="test" default="compile">
-    <description>My first complete build file, including packaging and executing a Java program.</description>
+<project name="test" default="compile" basedir=".">
+    <description>
+        My first complete build file, including packaging and executing a Java program.
+    </description>
+
+    <property name="src.dir" value="src"/>
+    <property name="lib.dir" value="lib"/>
+    <property name="classes.dir" value="build/classes"/>
+    <property name="build.dir" value="build"/>
+    <property name="mainclass" value="org.wenxueliu.test.Example"/>
+    <property name="dist" value="dist"/>
+
+    <path id="lib-classpath">
+        <fileset dir="${lib.dir}">
+            <include name="**/*.jar"/>
+        </fileset>
+    </path>
+
     <target name="init" description="Create the output directories">
+        <tstamp/>
         <mkdir dir="src/org/wenxueliu/test"/>
-        <mkdir dir="build/classes"/>
-        <mkdir dir="dist"/>
+        <mkdir dir="${classes.dir}"/>
+        <mkdir dir="${dist}"/>
     </target>
 
     <target name="compile" depends="init" description="Compiles into the output directories">
-        <javac srcdir="src" debug="true" destdir="build/classes" includeantruntime="false"></javac>
+        <javac srcdir="${src.dir}" debug="true" destdir="${classes.dir}" includeantruntime="false">
+            <compilerarg line="-encoding UTF-8"/>
+            <classpath refid="lib-classpath"/>
+        </javac>
     </target>
 
+
     <target name="package" depends="compile" description="Creates the JAR package files">
-        <jar destfile="dist/test.jar" basedir="build/classes"></jar>
+        <copy todir="${build.dir}/lib">
+            <fileset dir="${lib.dir}"/>
+        </copy>
+
+        <!--Create a property containing all .jar files,
+        prefix lib/, and seperated with a space-->
+        <pathconvert property="mf.classpath" pathsep=" ">
+            <mapper>
+                <chainedmapper>
+                    <!-- jar包文件只留文件名，去掉目录信息 -->
+                    <flattenmapper/>
+                    <!-- add lib/ prefix -->
+                    <globmapper from="*" to="lib/*"/>
+                </chainedmapper>
+            </mapper>
+            <path refid="lib-classpath"/>
+        </pathconvert>
+
+        <jar destfile="${dist}/test.jar" basedir="${classes.dir}">
+           <manifest>
+                <attribute name="Main-class" value="${mainclass}"/>
+                <attribute name="Class-Path" value="${mf.classpath}"/>
+            </manifest>
+　　　  </jar>
     </target>
 
     <target name="clean" description="Delete the output directories">
         <delete dir="build"/>
-        <delete dir="dist"/>
+        <delete dir="${classes.dir}"/>
+        <delete dir="${dist}"/>
     </target>
+
     <target name="exec" depends="compile" description="Running programs under Ant">
         <!-- $ java -cp build/classes org.cheungmine.study.Main hello world . -->
-        <java classname="org.wenxueliu.test.Example" classpath="build/classes">
+        <java classname="${mainclass}" classpath="${classes.dir}">
             <arg value="hello"/>
             <arg value="world"/>
             <!-- 
