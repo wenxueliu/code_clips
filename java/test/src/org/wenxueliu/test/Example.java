@@ -98,37 +98,46 @@ public class Example {
 
     void ThreadSynTest() {
         ThreadSyn ts = new ThreadSyn();
-        System.out.println("------ ThreadSynTest --------");
-        System.out.println("------------ normal Test ------------");
-        ts.test();
-        try {
-            TimeUnit.SECONDS.sleep(3);
-        } catch(InterruptedException e) {
-            //No-op
-        }
-        System.out.println("------------ synchronized Test ------------");
-        ts.testSyn();
-        try {
-            TimeUnit.SECONDS.sleep(3);
-        } catch(InterruptedException e) {
-            //No-op
-        }
-        System.out.println("------------ synchronized static Test ------------");
-        ts.testStaticSyn();
-        try {
-            TimeUnit.SECONDS.sleep(3);
-        } catch(InterruptedException e) {
-            //No-op
-        }
-		System.out.println("------------ CountDownLatchTest Test ------------");
-		ts.CountDownLatchTest();
-		try {
-            TimeUnit.SECONDS.sleep(3);
-        } catch(InterruptedException e) {
-            //No-op
-        }
-		System.out.println("------------  CyclicBarrierTest ------------");
-		ts.CyclicBarrierTest();
+        //System.out.println("------ ThreadSynTest --------");
+        //System.out.println("------------ normal Test ------------");
+        //ts.test();
+        //try {
+        //    TimeUnit.SECONDS.sleep(3);
+        //} catch(InterruptedException e) {
+        //    //No-op
+        //}
+        //System.out.println("------------ synchronized Test ------------");
+        //ts.testSyn();
+        //try {
+        //    TimeUnit.SECONDS.sleep(3);
+        //} catch(InterruptedException e) {
+        //    //No-op
+        //}
+        //System.out.println("------------ synchronized static Test ------------");
+        //ts.testStaticSyn();
+        //try {
+        //    TimeUnit.SECONDS.sleep(3);
+        //} catch(InterruptedException e) {
+        //    //No-op
+        //}
+		//System.out.println("------------ CountDownLatchTest Test ------------");
+		//ts.CountDownLatchTest();
+		//try {
+        //    TimeUnit.SECONDS.sleep(3);
+        //} catch(InterruptedException e) {
+        //    //No-op
+        //}
+		//System.out.println("------------  CyclicBarrierTest ------------");
+		//ts.CyclicBarrierTest();
+
+		System.out.println("------------  voliateTest ------------");
+        ts.voliateTest();
+
+		System.out.println("------------  voliateSynTest ------------");
+        ts.voliateSynTest();
+
+		System.out.println("------------  voliateLockTest ------------");
+        ts.voliateLockTest();
     }
 
     void listLoopTest() {
@@ -359,13 +368,14 @@ public class Example {
         //e.StringCompare();
         //e.ListHashMap();
         //e.listLoopTest();
-        //e.ThreadSynTest();
+        e.ThreadSynTest();
         //e.ThreadLockTest();
         //e.DemoExecutorTest();
         //e.LinkedBlockingQueueExampleTest();
         //e.ThreadBasicTest();
         //e.testNode();
-        e.ThreadLocalTest();
+        //e.ThreadLocalTest();
+        //PerformanceTest.testVar();
 	}
 
     public void testNode() {

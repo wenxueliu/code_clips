@@ -5,6 +5,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.Lock;
 
 public class ThreadSyn {
 
@@ -54,6 +56,79 @@ public class ThreadSyn {
                 InsertData.insert3();
             };
         }.start();
+    }
+
+    private volatile int inc = 0;
+    private volatile int incSyn = 0;
+    private volatile int incLock = 0;
+
+    public void increase() {
+        inc++;
+    }
+
+    public void increaseLock() {
+        incLock++;
+    }
+
+    public synchronized void increaseSyn() {
+        incSyn++;
+    }
+
+    public void voliateTest() {
+        for (int i = 0; i < 10; i++) {
+            new Thread() {
+                public void run() {
+                    for (int i = 0; i < 10000; i++) {
+                        increase();
+                    }
+                };
+            }.start();
+        }
+
+        while(Thread.activeCount() > 1) {
+            Thread.yield();
+        }
+        System.out.println("inc value (expected 100000)" + inc);
+    }
+
+    public void voliateSynTest() {
+        for (int i = 0; i < 10; i++) {
+            new Thread() {
+                public void run() {
+                    for (int i = 0; i < 10000; i++) {
+                            increaseSyn();
+                    }
+                };
+            }.start();
+        }
+
+        while(Thread.activeCount() > 1) {
+            Thread.yield();
+        }
+        System.out.println("inc value (expected 100000)" + incSyn);
+    }
+
+    Lock lock = new ReentrantLock();
+    public void voliateLockTest() {
+        for (int i = 0; i < 10; i++) {
+            new Thread() {
+                public void run() {
+                    for (int i = 0; i < 10000; i++) {
+                        try {
+                            lock.lock();
+                            increaseLock();
+                        } finally {
+                            lock.unlock();
+                        }
+                    }
+                };
+            }.start();
+        }
+
+        while(Thread.activeCount() > 1) {
+            Thread.yield();
+        }
+        System.out.println("inc value (expected 100000)" + incLock);
     }
 
 	public void CountDownLatchTest() {
@@ -183,6 +258,15 @@ public class ThreadSyn {
         }
 		System.out.println("------------  CyclicBarrierTest ------------");
 		ts.CyclicBarrierTest();
+
+		System.out.println("------------  voliateTest ------------");
+        ts.voliateTest();
+
+		System.out.println("------------  voliateSynTest ------------");
+        ts.voliateSynTest();
+
+		System.out.println("------------  voliateLockTest ------------");
+        ts.voliateLockTest();
 	}
 
 }
