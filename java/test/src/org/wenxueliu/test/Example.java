@@ -28,6 +28,8 @@ import org.wenxueliu.concurrent.ThreadLock;
 import org.wenxueliu.concurrent.LinkedBlockingQueueExample;
 import org.wenxueliu.concurrent.ThreadTest;
 import org.wenxueliu.concurrent.MyThreadLocal;
+import org.wenxueliu.concurrent.MyThreadLocalError;
+import org.wenxueliu.concurrent.MyThreadLocalPlus;
 import org.wenxueliu.demotask.DemoExecutor;
 /**
  *
@@ -38,6 +40,61 @@ import org.wenxueliu.demotask.DemoExecutor;
  *
  */
 public class Example {
+
+    void ThreadLocalPlusTest() {
+        final MyThreadLocalPlus test = new MyThreadLocalPlus();
+
+        test.set();
+        System.out.println(test.getLong());
+        System.out.println(test.getString());
+
+
+        Thread thread1 = new Thread(){
+                    public void run() {
+                                    test.set();
+                                    System.out.println(test.getLong());
+                                    System.out.println(test.getString());
+                                };
+                };
+        thread1.start();
+
+        try {
+            thread1.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println(test.getLong());
+        System.out.println(test.getString());
+    }
+
+    void ThreadLocalErrorTest() {
+        final MyThreadLocalError test = new MyThreadLocalError();
+
+        try {
+            System.out.println(test.getLong());
+            System.out.println(test.getString());
+
+            Thread thread1 = new Thread(){
+                        public void run() {
+                                        test.set();
+                                        System.out.println(test.getLong());
+                                        System.out.println(test.getString());
+                                    };
+                    };
+            thread1.start();
+            try {
+                thread1.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            System.out.println(test.getLong());
+            System.out.println(test.getString());
+        } catch (NullPointerException e) {
+            System.out.println("Expect: null pointer exception throw");
+        }
+    }
 
     void ThreadLocalTest() {
         MyThreadLocal.LocalTest();
@@ -368,7 +425,7 @@ public class Example {
         //e.StringCompare();
         //e.ListHashMap();
         //e.listLoopTest();
-        e.ThreadSynTest();
+        //e.ThreadSynTest();
         //e.ThreadLockTest();
         //e.DemoExecutorTest();
         //e.LinkedBlockingQueueExampleTest();
@@ -376,6 +433,8 @@ public class Example {
         //e.testNode();
         //e.ThreadLocalTest();
         //PerformanceTest.testVar();
+        e.ThreadLocalErrorTest();
+        e.ThreadLocalPlusTest();
 	}
 
     public void testNode() {
