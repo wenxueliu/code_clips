@@ -12,4 +12,6 @@ Clang/media
 *.x264
 *.h264
 *~
+nim/*
+!nim/*.nim
 
