@@ -60,3 +60,43 @@ block Floats:
   #echo("$sum type :", type($sum))
 
 #$ (stringify) operator turns any basic type into a string,
+
+block reprStr:
+  var
+    myBool = true
+    myCharacter = 'n'
+    myString = "nim"
+    myInteger = 42
+    myFloat = 3.14
+
+  echo ("$  vs  repr")
+  echo ($myBool, ":", repr(myBool))
+  echo ($myCharacter, ":", repr(myCharacter))
+  echo ($myString, ":", repr(myString))
+  echo ($myInteger, ":", repr(myInteger))
+  echo ($myFloat, ":", repr(myFloat))
+
+#Advance Type
+
+block AdvanceType:
+ type
+   bigestInteger = int64
+   bigestFloat = float64
+
+ type
+   Direction = enum
+     north,east,south,west
+ var x = south
+ echo ("advance type")
+ echo ("x = south ")
+ echo ("$x : ", $x)
+ echo ("ord(x) : ", ord(x))
+
+ type
+   MyEnum = enum
+     a = 2, b = 4, c = 89
+
+ var y = b
+ echo ("y = b")
+ echo ("$y : ", $y)
+ echo ("ord(y) : ", ord(y))
