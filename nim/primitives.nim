@@ -23,6 +23,7 @@ var str2 : string      # str2 = nil, trade-off str1
 # the EOutOfRange exception is raised
 
 block Integer:
+  # Immutable variables
   let
     a = 0     # int
     b = 0'i8  # int8

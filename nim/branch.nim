@@ -53,3 +53,18 @@ if yes("Should I delete all your important files?"):
   echo("I'm sorry Dave, I'm afraid I can't do that.")
 else:
   echo("I think you know what the problem is just as well as I do.")
+
+proc positiveOrNegative(num : int): string =
+  result = case num:
+    of low(int).. -1:
+      "negative"
+    of 0:
+      "zero"
+    of 1..high(int):
+      "positive"
+    else:
+      "impossiable"
+
+echo positiveOrNegative(-1)
+echo positiveOrNegative(0)
+echo positiveOrNegative(4)
