@@ -47,7 +47,52 @@ proc toString(x : bool) : string =
   else : result = "false"
 
 iterator counter(a, b : int): int =
-  res = a
+  var res = a
   while res <= b:
     yield res
     inc(res)
+
+proc fibonacci(n : int): int =
+    if n < 2:
+        result = n
+    else:
+        result = fibonacci(n-1) + (n-2).fibonacci
+
+block SideEffect:
+    proc sum(x, y:int) : int {. noSideEffect .} =
+        x + y
+
+    proc minus(x, y:int) : int {. noSideEffect .} =
+        #echo x
+        x - y
+
+    echo sum(1, 2)
+    echo minus(1, 2)
+
+block Operator:
+    proc `$` (a: array[2, array[2, int]]) : string =
+        result = ""
+        for i in a:
+            for j in i:
+                result.add($j & ", ")
+            result.add("\n")
+
+    echo ([[1,2], [3,4]])
+
+    proc `^&*^@%` (a,b : string) : string =
+        result = a[0] & b[high(b)]
+
+    assert("fooo" ^&*^@% "bffr" == "fr")
+
+block GenericFunc:
+    let zero = ""
+    proc `+` (a, b : string) : string =
+        a & b
+
+    proc `*`[T](a:T, b:int) : T =
+        result = zero
+        for i in 0.. b-1 :
+            result = result + a
+
+    echo ("f" * 5)
+    assert("f" * 5 == "fffff")
