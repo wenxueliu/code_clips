@@ -38,6 +38,20 @@ block Integer:
 
   echo("a = 0 to float ", toFloat(a))
 
+  let
+    x1 = 0x12
+    x2 = 0X12
+    y  = 0o12
+    z1 = 0b10
+    z2 = 0B10
+
+  echo ("0x12 = ", x1)
+  echo ("0X12 = ", x2)
+  echo ("0o12 = ", y)
+  echo ("0b10 = ", z1)
+  echo ("0B10 = ", z2)
+
+
 #Floats
 # + - * / < <= == != > >=
 
@@ -80,24 +94,77 @@ block reprStr:
 #Advance Type
 
 block AdvanceType:
- type
-   bigestInteger = int64
-   bigestFloat = float64
+  type
+    bigestInteger = int64
+    bigestFloat = float64
 
- type
-   Direction = enum
-     north,east,south,west
- var x = south
- echo ("advance type")
- echo ("x = south ")
- echo ("$x : ", $x)
- echo ("ord(x) : ", ord(x))
+  type
+    Direction = enum
+      north,east,south,west
+  var x = south
+  echo ("advance type")
+  echo ("x = south ")
+  echo ("$x : ", $x)
+  echo ("ord(x) : ", ord(x))
 
- type
-   MyEnum = enum
-     a = 2, b = 4, c = 89
+  type
+    MyEnum = enum
+      a = 2, b = 4, c = 89
 
- var y = b
- echo ("y = b")
- echo ("$y : ", $y)
- echo ("ord(y) : ", ord(y))
+  var y = b
+  echo ("y = b")
+  echo ("$y : ", $y)
+  echo ("ord(y) : ", ord(y))
+
+  type
+    MyInteger = int
+
+  echo 2 + MyInteger(4)
+
+#====== module
+
+type
+    Animal* = object
+        name *, special* : string
+        age : int
+
+proc sleep*(a: var Animal) =
+    a.age += 1
+
+proc sleep*(a: ref Animal) =
+    a.age += 1
+
+proc dead*(a: Animal) : bool =
+    result = a.age > 28
+
+var carl : Animal
+carl = Animal(name : "Carl",
+                special : "L. gramma",
+                age : 19)
+
+let joe = Animal(name : "Joe",
+                special : "H. sapiens",
+                age : 29)
+
+echo "carl.dead: ", carl.dead
+echo "joe.dead: ", joe.dead
+for i in 0..10:
+    carl.sleep()
+echo "carl.dead: ", carl.dead
+echo "joe.dead: ", joe.dead
+
+let mittens : ref Animal = new (Animal)
+mittens.name = "mittens"
+mittens.special = "P. leo"
+mittens.age = 6
+
+mittens.sleep()
+echo "mittens.age: ", mittens.age
+
+type
+    PAnmial* = ref Animal
+let spot = PAnmial(name : "Spot",
+                special : "C. lups",
+                age : 1)
+
+
