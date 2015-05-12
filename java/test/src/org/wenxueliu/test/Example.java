@@ -31,6 +31,7 @@ import org.wenxueliu.concurrent.MyThreadLocal;
 import org.wenxueliu.concurrent.MyThreadLocalError;
 import org.wenxueliu.concurrent.MyThreadLocalPlus;
 import org.wenxueliu.demotask.DemoExecutor;
+import org.wenxueliu.classloader.MyClassLoader;
 /**
  *
  */
@@ -40,6 +41,11 @@ import org.wenxueliu.demotask.DemoExecutor;
  *
  */
 public class Example {
+
+    void ClassLoaderTest() {
+        MyClassLoader.defaultLoader();
+        MyClassLoader.serviceLoader();
+    }
 
     void ThreadLocalPlusTest() {
         final MyThreadLocalPlus test = new MyThreadLocalPlus();
@@ -433,8 +439,9 @@ public class Example {
         //e.testNode();
         //e.ThreadLocalTest();
         //PerformanceTest.testVar();
-        e.ThreadLocalErrorTest();
-        e.ThreadLocalPlusTest();
+        //e.ThreadLocalErrorTest();
+        //e.ThreadLocalPlusTest();
+        e.ClassLoaderTest();
 	}
 
     public void testNode() {
