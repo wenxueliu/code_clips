@@ -9,6 +9,14 @@ echo sumTillNegative() # echos 0
 echo sumTillNegative(3, 4, 5) # echos 12
 echo sumTillNegative(3, 4 , -1 , 6) # echos 7
 
+proc printVargs(vars : varargs[string, `$`]) =
+    for v in vars:
+        echo v
+
+echo "printVargs :"
+printVargs("abc","edf","ghi")
+printVargs 1, "string", @[1, 2, 3]
+
 proc divmod(a, b : int; res, remainder: var int) =
   res = a div b
   remainder = a mod b
