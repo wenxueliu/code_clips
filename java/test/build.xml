@@ -5,6 +5,7 @@
     </description>
 
     <property name="src.dir" value="src"/>
+    <property name="resources" location="src/resources/"/>
     <property name="lib.dir" value="lib"/>
     <property name="classes.dir" value="build/classes"/>
     <property name="build.dir" value="build"/>
@@ -20,6 +21,7 @@
     <target name="init" description="Create the output directories">
         <tstamp/>
         <mkdir dir="src/org/wenxueliu/test"/>
+        <mkdir dir="${resources}"/>
         <mkdir dir="${classes.dir}"/>
         <mkdir dir="${dist}"/>
     </target>
@@ -29,6 +31,9 @@
             <compilerarg line="-encoding UTF-8"/>
             <classpath refid="lib-classpath"/>
         </javac>
+        <copy todir="${build.dir}">
+            <fileset dir="${resources}" />
+        </copy>
     </target>
 
 
@@ -56,6 +61,7 @@
                 <attribute name="Main-class" value="${mainclass}"/>
                 <attribute name="Class-Path" value="${mf.classpath}"/>
             </manifest>
+            <fileset dir="${resources}"/>
 　　　  </jar>
     </target>
 
