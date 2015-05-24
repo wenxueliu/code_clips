@@ -173,8 +173,16 @@ block distinctTest:
 
     proc `*` (a,b : Dollars) : Dollars {.borrow.}
     proc `+` (a,b : Dollars) : Dollars {.borrow.}
+    proc `+` (a: Dollars, b: float) : Dollars {.borrow.}
     a = 20.Dollars * 5.Dollars
     echo repr(a)
+
+    type
+      UltraDollars = distinct Dollars
+
+    proc `*` (x,y: UltraDollars) : UltraDollars {.borrow.}
+    proc `+` (x,y: UltraDollars) : UltraDollars {.borrow.}
+
 
     type
         Foo = object
