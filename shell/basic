@@ -1,0 +1,159 @@
+
+###如何计算传递进来的参数 ?
+
+    $#
+
+###如何获取一个文件每一行的第三个元素 ?
+
+    awk '{print $3}'
+
+###假如文件中每行第一个元素是 FIND，如何获取第二个元素
+
+    awk '{ if ($1 == "FIND") print $2}'
+
+###如何调试 bash 脚本
+
+    将 -xv 参数加到 #!/bin/bash, 如 #!/bin/bash –xv
+
+###如何向连接两个字符串 ?
+
+    V1="Hello"
+    V2="World"
+    V3=${V1}${V2}
+    echo $V3
+
+###如何进行两个整数相加 ?
+
+    V1=1
+    V2=2
+    let V3=$V1+$V2
+    echo $V3
+    A=5
+    B=6
+    echo $(($A+$B)) # 方法 2
+    echo $[$A+$B] # 方法 3
+    expr $A + $B # 方法 4
+    echo $A+$B | bc # 方法 5
+    awk 'BEGIN{print '"$A"'+'"$B"'}' # 方法 6
+
+###命令 “export” 有什么用 ?
+
+
+### & 和 && 有什么区别
+
+
+    & - 希望脚本在后台运行的时候使用它
+    && - 当前一个脚本成功完成才执行后面的命令/脚本的时候使用它
+
+###什么时候要在 [ condition ] 之前使用 “if” ?
+
+    当条件满足时需要运行多条命令的时候。
+
+###如何只用 echo 命令获取字符串变量的一部分 ?
+
+###如果给定字符串 variable="User:123:321:/home/dir"，如何只用 echo 命令获取
+home_dir ?
+
+    echo ${variable#*:*:*:}
+    echo ${variable##*:}
+
+###如何从上面的字符串中获取 “User” ?
+
+    echo ${variabl%:*:*:*}
+    echo ${variable%%:*}
+
+###如何在 bash shell 中更改标准的域分隔符为 ":" ?
+
+    IFS=":"
+
+###如何获取变量长度 ?
+
+    ${#variable}
+
+###如何打印变量的最后 5 个字符 ?
+
+    echo ${variable: -5}
+
+###${variable:-10} 和 ${variable: -10} 有什么区别?
+
+
+    ${variable:-10} - 如果之前没有给 variable 赋值则输出
+    10；如果有赋值则输出该变量
+    ${variable: -10} - 输出 variable 的最后 10 个字符
+
+###哪个命令将命令替换为大写 ?
+
+    tr '[:lower:]' '[:upper:]'
+
+
+###不用 wc 命令如何计算字符串中的单词数目 ?
+
+    set ${string}
+    echo $#}
+
+###"export $variable" 或 "export variable" 哪个正确 ?
+
+    export variable
+
+###如何列出第二个字母是 a 或 b 的文件 ?
+
+    ls -d ?[ab]*
+
+###如何去除字符串中的所有空格 ?
+
+    echo $string|tr -d " "
+
+###如何打印传递给脚本的所有参数 ?
+
+    echo $*
+    echo $@
+
+###[ $a == $b ] 和 [ $a -eq $b ] 有什么区别
+
+
+    [ $a == $b ] - 用于字符串比较
+    [ $a -eq $b ] - 用于数字比较
+
+###[[ $string == abc* ]] 和 [[ $string == "abc*" ]] 有什么区别
+
+###$? 表示什么意思 ?
+
+    前台最近命令的结束状态。
+
+###bash 中 $! 表示什么意思 ?
+
+    后台最近执行命令的 PID.
+
+###$* 和 $@ 有什么区别
+
+    $* - 以一个字符串形式输出所有传递到脚本的参数
+    $@ - 以 $IFS 为分隔符列出所有传递到脚本中的参数
+
+###如何在 bash 中定义数组 ?
+
+    array=("Hi" "my" "name" "is")
+
+###如何打印数组的所有元素 ?
+
+    echo ${array[@]}
+
+###如何打印数组的所有元素所引 ?
+    echo ${!array[@]}
+
+###如何移除数组中索引为 2 的元素 ?
+
+    unset array[2]
+
+###shell 脚本如何获取输入的值 ?
+
+    ./script param1 param2
+
+
+    /usr/bin/expect << EOD
+    spawn rsync -ar ${line} ${desthost}:${destpath}
+    expect "*?assword:*"
+    send "${password}\r"
+    expect eof
+                        EOD
+    read -p "Destination backup Server : " desthost
+
