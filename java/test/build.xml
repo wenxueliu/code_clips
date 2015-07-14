@@ -1,87 +1,146 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project name="test" default="compile" basedir=".">
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project name="floodlight" default="exec" basedir=".">
     <description>
         My first complete build file, including packaging and executing a Java program.
     </description>
 
-    <property name="src.dir" value="src"/>
-    <property name="resources" location="src/resources/"/>
-    <property name="lib.dir" value="lib"/>
-    <property name="classes.dir" value="build/classes"/>
-    <property name="build.dir" value="build"/>
+    <property name="target" location="target"/>
+    <property name="build" location="${target}/bin"/>
+    <property name="build-test" location="${target}/bin-test"/>
+    <property name="build-coverage" location="${target}/bin-coverage"/>
+    <property name="test-output" location="${target}/test"/>
+    <property name="coverage-output" location="${target}/coverage"/>
+    <property name="source" location="src/main/java"/>
+    <property name="resources" location="src/main/resources/"/>
+    <property name="test-resources" location="src/test/resources/"/>
+    <property name="source-test" location="src/test/java"/>
+    <property name="python-src" location="src/main/python"/>
+    <property name="docs" location="${target}/docs"/>
     <property name="mainclass" value="org.wenxueliu.test.Example"/>
-    <property name="dist" value="dist"/>
+    <property name="learnJava-jar" location="${target}/learnJava.jar"/>
+    <property name="floodlight-test-jar" location="${target}/floodlight-test.jar"/>
+    <property name="thrift.dir" value="${basedir}/src/main/thrift"/>
+    <property name="thrift.out.dir" value="lib/gen-java"/>
+    <property name="ant.build.javac.source" value="1.7"/>
+    <property name="ant.build.javac.target" value="1.7"/>
+    <property name="findbugs.home" value="../build/findbugs-2.0.2"/>
+    <property name="findbugs.results" value="findbugs-results" />
+    <property name="lib.dir" location="lib"/>
+    <property name="classes.dir" location="build/classes"/>
+    <property name="dist" location="dist"/>
 
-    <path id="lib-classpath">
+    <patternset id="lib">
+        <include name="mysql-connector-java-5.1.34-bin.jar"/>
+        <include name="slf4j-api-1.6.4.jar"/>
+        <include name="logback-classic-1.0.0.jar"/>
+        <include name="logback-core-1.0.0.jar"/>
+    </patternset>
+
+    <path id="classpath">
         <fileset dir="${lib.dir}">
+            <patternset refid="lib"/>
+            <!--
             <include name="**/*.jar"/>
+            -->
         </fileset>
     </path>
 
+    <!--
+    <patternset id="lib-cobertura">
+        <include name="cobertura-1.9.4.1.jar"/>
+        <include name="asm-3.0.jar"/>
+        <include name="asm-tree-3.0.jar"/>
+        <include name="oro/jakarta-oro-2.0.8.jar"/>
+        <include name="log4j-1.2.9.jar"/>
+    </patternset>
+    <path id="classpath-cobertura">
+        <fileset dir="${lib}">
+            <patternset refid="lib-cobertura"/>
+    </fileset>
+    </path>
+
+    <patternset id="lib-test">
+        <include name="junit-4.8.2.jar"/>
+        <include name="org.easymock-3.1.jar"/>
+        <include name="objenesis-1.2.jar"/>
+        <include name="cglib-nodep-2.2.2.jar"/>
+    </patternset>
+    <path id="classpath-test">
+        <fileset dir="${lib}">
+            <patternset refid="lib-test"/>
+            <patternset refid="lib-cobertura"/>
+            <patternset refid="lib"/>
+        </fileset>
+    </path>
+    -->
+
     <target name="init" description="Create the output directories">
         <tstamp/>
+        <!--
         <mkdir dir="src/org/wenxueliu/test"/>
         <mkdir dir="${resources}"/>
         <mkdir dir="${classes.dir}"/>
-        <mkdir dir="${dist}"/>
+        <mkdir dir="${lib.dir}"/>
+        -->
+        <mkdir dir="${build}"/>
+        <mkdir dir="${target}/lib"/>
+        <!--
+        <mkdir dir="${build-test}"/>
+        <mkdir dir="${thrift.out.dir}"/>
+        <mkdir dir="${test-output}"/>
+        -->
     </target>
 
     <target name="compile" depends="init" description="Compiles into the output directories">
-        <javac srcdir="${src.dir}" debug="true" destdir="${classes.dir}" includeantruntime="false">
-            <compilerarg line="-encoding UTF-8"/>
-            <classpath refid="lib-classpath"/>
+        <javac includeAntRuntime="false"
+            classpathref="classpath"
+            srcdir="${source}"
+            debug="true"
+            destdir="${build}">
         </javac>
-        <copy todir="${build.dir}">
+        <copy todir="${build}">
             <fileset dir="${resources}" />
         </copy>
     </target>
 
-
     <target name="package" depends="compile" description="Creates the JAR package files">
-        <copy todir="${build.dir}/lib">
-            <fileset dir="${lib.dir}"/>
-        </copy>
-
-        <!--Create a property containing all .jar files,
-        prefix lib/, and seperated with a space-->
-        <pathconvert property="mf.classpath" pathsep=" ">
-            <mapper>
-                <chainedmapper>
-                    <!-- jar包文件只留文件名，去掉目录信息 -->
-                    <flattenmapper/>
-                    <!-- add lib/ prefix -->
-                    <globmapper from="*" to="lib/*"/>
-                </chainedmapper>
-            </mapper>
-            <path refid="lib-classpath"/>
-        </pathconvert>
-
-        <jar destfile="${dist}/test.jar" basedir="${classes.dir}">
-           <manifest>
-                <attribute name="Main-class" value="${mainclass}"/>
-                <attribute name="Class-Path" value="${mf.classpath}"/>
+        <jar destfile="${learnJava-jar}" filesetmanifest="mergewithoutmain">
+            <manifest>
+                <attribute name="Main-Class" value="${mainclass}"/>
+                <attribute name="Class-Path" value="."/>
             </manifest>
+            <fileset dir="${build}"/>
             <fileset dir="${resources}"/>
-　　　  </jar>
+            <zipgroupfileset dir="${lib.dir}">
+                <patternset refid="lib"/>
+            </zipgroupfileset>
+        </jar>
     </target>
 
     <target name="clean" description="Delete the output directories">
-        <delete dir="build"/>
-        <delete dir="${classes.dir}"/>
-        <delete dir="${dist}"/>
+        <delete dir="${target}"/>
     </target>
 
-    <target name="exec" depends="compile" description="Running programs under Ant">
+    <target name="exec" depends="package" description="Running programs under Ant">
+        <java fork="true" jar="${learnJava-jar}" classpathref="classpath">
+            <jvmarg value="-server"/>
+            <jvmarg value="-Xms1024M"/>
+            <jvmarg value="-Xmx1024M"/>
+        </java>
         <!-- $ java -cp build/classes org.cheungmine.study.Main hello world . -->
+        <!--
         <java classname="${mainclass}" classpath="${classes.dir}">
             <arg value="hello"/>
             <arg value="world"/>
+            -->
             <!-- 
                 the following arg uses the file attribute, which tells Ant to resolve 
                 that attribute to an absolute file location before calling the program.
             -->
+            <!-- 
             <arg file="."/>
         </java>
+        -->
         <!--
         <echo level="verbose" message="running"/>
         <echo level="info" message="running"/>
@@ -89,5 +148,60 @@
         <echo level="error" message="running"/>
         -->
     </target>
+    <!--
+    <target name="javadoc">
+        <javadoc access="protected"
+            author="true"
+            classpathref="classpath"
+            destdir="${docs}"
+            doctitle="Floodlight"
+            nodeprecated="false"
+            nodeprecatedlist="false"
+            noindex="false"
+            nonavbar="false"
+            notree="false"
+            source="1.6"
+            sourcepath="${source}"
+            splitindex="true"
+            use="true"
+            version="true"/>
+    </target>
+
+    <target name="findbugs-xml" depends="init,compile">
+        <taskdef name="findbugs" classname="edu.umd.cs.findbugs.anttask.FindBugsTask" classpath="${findbugs.home}/lib/findbugs-ant.jar"/>
+        <mkdir dir="${findbugs.results}"/>
+        <findbugs
+            home="${findbugs.home}"
+            output="xml"
+            excludeFilter="${basedir}/findbugs-exclude.xml"
+            jvmargs="-Xmx1024m"
+            outputFile="${findbugs.results}/results.xml">
+           <sourcePath path="${source}" />
+           <sourcePath path="${thrift.out.dir}" />
+           <class location="${build}" />
+           <auxClasspath>
+                <path refid="classpath" />
+           </auxClasspath>
+        </findbugs>
+    </target>
+
+    <target name="findbugs" depends="init,compile">
+        <taskdef name="findbugs" classname="edu.umd.cs.findbugs.anttask.FindBugsTask" classpath="${findbugs.home}/lib/findbugs-ant.jar"/>
+        <mkdir dir="${findbugs.results}"/>
+        <findbugs
+            home="${findbugs.home}"
+            output="html"
+            excludeFilter="${basedir}/findbugs-exclude.xml"
+            jvmargs="-Xmx1024m"
+            outputFile="${findbugs.results}/results.html" >
+           <sourcePath path="${source}" />
+           <sourcePath path="${thrift.out.dir}" />
+           <class location="${build}" />
+           <auxClasspath>
+                <path refid="classpath" />
+           </auxClasspath>
+        </findbugs>
+    </target>
+    -->
 </project>
 

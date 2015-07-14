@@ -32,6 +32,8 @@ import org.wenxueliu.concurrent.MyThreadLocalError;
 import org.wenxueliu.concurrent.MyThreadLocalPlus;
 import org.wenxueliu.demotask.DemoExecutor;
 import org.wenxueliu.classloader.MyClassLoader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 /**
  *
  */
@@ -41,6 +43,8 @@ import org.wenxueliu.classloader.MyClassLoader;
  *
  */
 public class Example {
+
+    private static Logger logger = LoggerFactory.getLogger(Example.class);
 
     void ClassLoaderTest() {
         MyClassLoader.defaultLoader();
@@ -399,6 +403,19 @@ public class Example {
 		System.out.println(map.get("1").toString());
     }
 
+    public void StrTest() {
+        logger.info("----- StrTest ------");
+        String ip1 = "192.168.1.1";
+        String ip2 = "192.168.1.1/24";
+        String []ret  = ip1.split("/");
+        String []ret1  = ip2.split("/");
+        System.out.println("ret1 length:" + ret.length + ", ret1[0]:" + ret1[0] + ", ret1[1]:" + ret1[1]);
+        System.out.println("ret length :" + ret1.length + ", ret[0]:" + ret[0] + ", ret[1]");// + ret[1]);
+        short i = -1;
+        System.out.println("short " + (i & 0xFFFF));
+        System.out.println("short " + ((Short.MIN_VALUE) & 0xFFFF));
+    }
+
     //public void StatusTest(){
     //    System.out.println("------ StatusTest  --------");
     //    StatusExample1 st = new StatusExample1(StatusExample1.Process.STATUS_OPEN);
@@ -418,6 +435,7 @@ public class Example {
 	 * @param args
 	 */
 	public static void main(String[] args) {
+
         Example e = new Example();
         //e.RefCopyTest();
         //e.AnnotationTest();
@@ -441,7 +459,8 @@ public class Example {
         //PerformanceTest.testVar();
         //e.ThreadLocalErrorTest();
         //e.ThreadLocalPlusTest();
-        e.ClassLoaderTest();
+        //e.ClassLoaderTest();
+        e.StrTest();
 	}
 
     public void testNode() {
