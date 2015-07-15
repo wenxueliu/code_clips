@@ -32,6 +32,7 @@ import org.wenxueliu.concurrent.MyThreadLocalError;
 import org.wenxueliu.concurrent.MyThreadLocalPlus;
 import org.wenxueliu.demotask.DemoExecutor;
 import org.wenxueliu.classloader.MyClassLoader;
+import org.wenxueliu.pdfbox.PDFEditor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 /**
@@ -45,6 +46,12 @@ import org.slf4j.LoggerFactory;
 public class Example {
 
     private static Logger logger = LoggerFactory.getLogger(Example.class);
+
+    void pdfboxTest() {
+        PDFEditor read = new PDFEditor();
+        String s = read.readFdf("/home/wenxueliu/book/release-notes.en.pdf");
+        System.out.println(s);
+    }
 
     void ClassLoaderTest() {
         MyClassLoader.defaultLoader();
@@ -460,7 +467,8 @@ public class Example {
         //e.ThreadLocalErrorTest();
         //e.ThreadLocalPlusTest();
         //e.ClassLoaderTest();
-        e.StrTest();
+        //e.StrTest();
+        e.pdfboxTest();
 	}
 
     public void testNode() {
