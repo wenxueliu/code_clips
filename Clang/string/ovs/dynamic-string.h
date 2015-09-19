@@ -73,9 +73,13 @@ void ds_put_char_multiple(struct ds *, char, size_t n);
 void ds_put_buffer(struct ds *, const char *, size_t n);
 void ds_put_cstr(struct ds *, const char *);
 void ds_put_and_free_cstr(struct ds *, char *);
-void ds_put_format(struct ds *, const char *, ...) __attribute__((__format__(printf, 2, 3))); //OVS_PRINTF_FORMAT(2, 3);
+#ifdef __GNUC__
+void ds_put_format(struct ds *, const char *, ...) __attribute__((__format__(printf, 2, 3)));
 void ds_put_format_valist(struct ds *, const char *, va_list) __attribute__((__format__(printf, 2, 0)));
-    //OVS_PRINTF_FORMAT(2, 0);
+#else
+void ds_put_format(struct ds *, const char *, ...)
+void ds_put_format_valist(struct ds *, const char *, va_list)
+#endif
 void ds_put_printable(struct ds *, const char *, size_t);
 void ds_put_hex(struct ds *ds, const void *buf, size_t size);
 void ds_put_hex_dump(struct ds *ds, const void *buf_, size_t size,
