@@ -1,0 +1,4 @@
+#! /bin/bash
+
+gcc -Wall  -o noreturn noreturn.c
+gcc -Wall  -o attribute attribute.c
