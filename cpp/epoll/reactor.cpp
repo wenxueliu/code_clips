@@ -6,18 +6,19 @@
 #include <stdio.h>
 
 /////////////////////////////////////////////////////////
-#define MAX_EPOLL_SIZE 1024
-#define MAX_EPOLL_EVENTS_SIZE 128
+const int MAX_EPOLL_SIZE = 1024;
+const MAX_EPOLL_EVENTS_SIZE = 128;
 
-LTReactor::LTReactor() :
-    m_epfd(-1), m_bRunning(false)
+LTReactor::LTReactor() : m_epfd(-1), m_bRunning(false)
 {
 }
 
-LTReactor::~LTReactor() {
+LTReactor::~LTReactor()
+{
 }
 
-bool LTReactor::Init() {
+bool LTReactor::Init()
+{
     //TODO more exactual error check
     m_epfd = epoll_create(MAX_EPOLL_SIZE);
     if (m_epfd == -1)
@@ -33,54 +34,50 @@ bool LTReactor::Init() {
 bool LTReactor::Run() {
     struct epoll_event events[MAX_EPOLL_EVENTS_SIZE];
     int nfds = 0; //返回被触发的事件的个数
-    while (true)
-    {
+    while (true) {
         // 超时时间，若m_bRunning，立即返回；否则100ms，即0.1s. 实际上，epoll_wait，只能够精确到毫秒(1/1000)
         nfds = epoll_wait(m_epfd, events, sizeof(events) / sizeof(events[0]),
          m_bRunning ? 100 : 1);
         // 要停止epoll.
-        if (m_bRunning == false)
-        {
+        if (m_bRunning == false) {
             timeval now;
             gettimeofday(&now, NULL); //获取当前时间
-            if (timercmp(&now, &m_stoptime, >))
-            {
+            if (timercmp(&now, &m_stoptime, >)) {
                 break;
             }
         }
         // epoll 出错
-        if (nfds == -1)
-        {
-            std::cout << "epoll_wait error: " << strerror(errno) << std::endl;
-            continue;
+        if (nfds == -1) {
+            if (errno == EINTR) {
+                std::cout << "epoll_wait error: " << strerror(errno) << std::endl;
+                continue;
+            }
+            break;
         }
         // 处理被触发的事件
-        for (int i = 0; i < nfds; ++i)
-        {
+        for (int i = 0; i < nfds; ++i) {
             int type = 0;
             int fd = events[i].data.fd;
-            if (fd < 0) //fd出错
-            {
+            //fd出错
+            if (fd < 0) {
                 std::cout << "the FD is " << fd << std::endl;
                 continue;
             }
             FDEventHanderBase* pBase = m_handlerSet.GetFDEventHandler(fd, type);
-            if (NULL == pBase)
-            {
+            if (NULL == pBase) {
                 std::cout << "pBase is NULL, fd is" << fd << std::endl;
                 continue;
             }
-
-            if (events[i].events & EPOLLIN)//read events
-            {
+            //read events
+            if (events[i].events & EPOLLIN) {
                 pBase->OnFDRead();
             }
-            if (events[i].events & EPOLLOUT) //write events
-            {
+            //write events
+            if (events[i].events & EPOLLOUT) {
                 pBase->OnFDWrite();
             }
-            if (events[i].events & EPOLLERR) // error events
-            {
+            // error events
+            if (events[i].events & EPOLLERR) {
                 pBase->Close();
             }
         }
@@ -105,6 +102,7 @@ bool LTReactor::Stop() {
     timeradd(&val, &now, &m_stoptime);
     return true;
 }
+
 // 注册读事件,
 // @return: 0, success. else failed.
 int LTReactor::RegisterReadEvent(FDEventHanderBase* pBase) {
@@ -118,8 +116,7 @@ int LTReactor::RegisterReadEvent(FDEventHanderBase* pBase) {
 
     int iRet = epoll_ctl(m_epfd, NULL == pHander ? EPOLL_CTL_ADD
      : EPOLL_CTL_MOD, pBase->GetFD(), &event);
-    if (iRet == -1)
-    {
+    if (iRet == -1) {
         std::cout << "epoll_ctl error: " << strerror(errno) << std::endl;
         return -1;
     }
@@ -127,6 +124,7 @@ int LTReactor::RegisterReadEvent(FDEventHanderBase* pBase) {
     m_handlerSet.AddFDEventHandler(pBase, EPOLLIN);
     return 0;
 }
+
 // 注册写事件
 // @return: 0, success. else failed.
 int LTReactor::RegisterWriteEvent(FDEventHanderBase* pBase) {
@@ -149,6 +147,7 @@ int LTReactor::RegisterWriteEvent(FDEventHanderBase* pBase) {
     m_handlerSet.AddFDEventHandler(pBase, EPOLLOUT);
     return 0;
 }
+
 // 注销读事件
 // @return: 0, success. else failed.
 int LTReactor::UnRegisterReadEvent(FDEventHanderBase* pBase) {
@@ -192,6 +191,7 @@ int LTReactor::UnRegisterWriteEvent(FDEventHanderBase* pBase) {
     m_handlerSet.DelFDEventHandler(pBase->GetFD(), EPOLLOUT);
     return 0;
 }
+
 // 注销读写事件
 int LTReactor::UnRegisterAllEvent(FDEventHanderBase* pBase) {
     epoll_event event;
@@ -207,16 +207,19 @@ int LTReactor::UnRegisterAllEvent(FDEventHanderBase* pBase) {
     m_handlerSet.DelFDEventHandler(pBase->GetFD(), EPOLLOUT | EPOLLIN);
     return 0;
 }
+
 // 注册定时器
 int LTReactor::RegisterTimer(TimerEventHanderBase* pBase) {
     m_handlerSet.AddTimerEventHandler(pBase);
     return 0;
 }
+
 // 注销定时器
 int LTReactor::UnRegisterTimer(TimerEventHanderBase* pBase) {
     m_handlerSet.DelTimerEventHandler(pBase);
     return 0;
 }
+
 // 扫描，看是否有定时器的时间到了
 void LTReactor::ScanTimer() {
     m_handlerSet.ScanTimer();
@@ -268,6 +271,7 @@ int FDEventHanderBase::SetNonBlock(int fd, bool bNonBlock/* = true*/) {
 
     return 0;
 }
+
 /* **********************************
  *        处理timer类的基类
  *    当timer被触发时，调用该类的函数
@@ -285,9 +289,11 @@ int TimerEventHanderBase::RegisterTimer(unsigned int msec /*ms*/, bool restart)
     timeradd(&now, &m_interval, &m_endtime);
     return m_pReactor->RegisterTimer(this);
 }
+
 int TimerEventHanderBase::UnRegisterTimer() {
     return m_pReactor->UnRegisterTimer(this);
 }
+
 int TimerEventHanderBase::RegisterTimerAgain() {
     if (timerisset(&m_endtime) && timerisset(&m_interval))
     {
@@ -298,44 +304,48 @@ int TimerEventHanderBase::RegisterTimerAgain() {
     }
     return -1;
 }
+
 /* **********************************
- *             处理类的集合
+ *         处理类的集合
  *         有个对应关系 -- fd -- 处理函数 -- read/write.
+ *
+ * 增加 fd:Handler
+ * @type : EPOLLIN, EPOLLOUT
+ * NOTE:　会删除之前的 Handler
  * *********************************/
-// 增加fd事件, @type : EPOLLIN, EPOLLOUT，
 void EventHanderSet::AddFDEventHandler(FDEventHanderBase* pHandler, int type) {
     const int fd = pHandler->GetFD();
     std::map<int, FDHandler>::iterator it = m_fdmap.find(fd);
-    if (it != m_fdmap.end())
-    {
+    if (it != m_fdmap.end()) {
         it->second.type |= type;
         it->second.pHandler = pHandler;
-    }
-    else
-    {
+    } else {
         FDHandler th;
         th.type = type;
         th.pHandler = pHandler;
         m_fdmap.insert(std::make_pair(fd, th));
     }
 }
-// @type : EPOLLIN, EPOLLOUT
+
+/*
+ * @type : EPOLLIN, EPOLLOUT
+ */
 void EventHanderSet::DelFDEventHandler(int fd, int type) {
     std::map<int, FDHandler>::iterator it = m_fdmap.find(fd);
-    if (it != m_fdmap.end())
-    {
-        it->second.type &= ~type;//去掉该属性
-        if (0 == it->second.type) //若所有的属性都去掉了，从map中删除该handler.
-        {
+    if (it != m_fdmap.end()) {
+        //去掉该属性
+        it->second.type &= ~type;
+        //若所有的属性都去掉了，从map中删除该handler.
+        if (0 == it->second.type) {
             m_fdmap.erase(it);
         }
     }
 }
+
 // 根据fd，找到 FDEventHanderBase，及type.
 FDEventHanderBase* EventHanderSet::GetFDEventHandler(int fd, int& type) {
     std::map<int, FDHandler>::iterator it = m_fdmap.find(fd);
-    if (it != m_fdmap.end())
-    {
+    if (it != m_fdmap.end()) {
         type = it->second.type;
         return it->second.pHandler;
     }
@@ -346,11 +356,11 @@ FDEventHanderBase* EventHanderSet::GetFDEventHandler(int fd, int& type) {
 void EventHanderSet::AddTimerEventHandler(TimerEventHanderBase* pHandler) {
     timeval endtime = pHandler->GetEndTime();
     std::pair<long int, long int> t(endtime.tv_sec, endtime.tv_usec);
-    printf("addTimer: [%u:%u] \n", (unsigned int) t.first,
-     (unsigned int) t.second);
+    printf("addTimer: [%u:%u] \n", (unsigned int) t.first, (unsigned int) t.second);
     m_timerMinHeap.Insert(t);
     m_timerMultiMap.insert(std::make_pair(t, pHandler));
 }
+
 void EventHanderSet::DelTimerEventHandler(TimerEventHanderBase* pHandler) {
     timeval endtime = pHandler->GetEndTime();
     std::pair<long int, long int> t(endtime.tv_sec, endtime.tv_usec);
@@ -358,56 +368,47 @@ void EventHanderSet::DelTimerEventHandler(TimerEventHanderBase* pHandler) {
      beg = m_timerMultiMap.lower_bound(t);
     std::multimap<std::pair<long int, long int>, TimerEventHanderBase*>::iterator
      end = m_timerMultiMap.upper_bound(t);
-    for (; beg != end; ++beg)
-    {
-        if (beg->second == pHandler)
-        {
+    for (; beg != end; ++beg) {
+        if (beg->second == pHandler) {
             m_timerMultiMap.erase(beg);
             break;
         }
     }
 }
+
 void EventHanderSet::ScanTimer() {
 
-    while (true)
-    {
-        //        printf("m_timerMinHeap: m_max_size[%d] m_cur_size[%d] \n",
-        //         m_timerMinHeap.GetMaxSize(), m_timerMinHeap.GetCurSize());
-        if (!m_timerMinHeap.IsEmpty())
-        {
+    while (true) {
+        //printf("m_timerMinHeap: m_max_size[%d] m_cur_size[%d] \n",
+        //m_timerMinHeap.GetMaxSize(), m_timerMinHeap.GetCurSize());
+        if (!m_timerMinHeap.IsEmpty()) {
             std::pair<long int, long int> minTime = m_timerMinHeap.GetMin(); //获取最小时间
             timeval minTimeVal;
             minTimeVal.tv_sec = minTime.first;
             minTimeVal.tv_usec = minTime.second;
 
-            timeval now =
-            { 0, 0 };
+            timeval now = { 0, 0 };
             gettimeofday(&now, NULL);
-            if (timercmp(&now, &minTimeVal, >=)) //当前时间>=触发时间
-            {
-                m_timerMinHeap.RemoveMin(); //去掉最小堆里面的时间
-                std::multimap<std::pair<long int, long int>,
-                 TimerEventHanderBase*>::iterator beg =
+            //当前时间>=触发时间
+            if (timercmp(&now, &minTimeVal, >=)) {
+                //去掉最小堆里面的时间
+                m_timerMinHeap.RemoveMin();
+                std::multimap<std::pair<long int, long int>, TimerEventHanderBase*>::iterator beg =
                  m_timerMultiMap.lower_bound(minTime);
 
-                for (; beg != m_timerMultiMap.upper_bound(minTime);)
-                {
+                for (; beg != m_timerMultiMap.upper_bound(minTime);) {
                     TimerEventHanderBase* pHandler = beg->second;
                     pHandler->OnTimeOut();
-                    if (pHandler->IsRestart()) //需要重启
-                    {
+                    //需要重启
+                    if (pHandler->IsRestart()) {
                         AddTimerEventHandler(pHandler);
                     }
                     m_timerMultiMap.erase(beg++);//去掉multimap中的句柄
                 }
-            }
-            else
-            {
+            } else {
                 break;
             }
-        }
-        else
-        {
+        } else {
             break;
         }
     }
