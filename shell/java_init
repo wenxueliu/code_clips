@@ -1,0 +1,254 @@
+#! /bin/bash
+
+#Author : Wenxue Liu
+#Update : 2015-10-09
+
+#TODO getopt  as follow
+INSTALL_FORCE=true
+JAVA_VERSION="7u79" # JAVA_VERSION=8u60
+JAVA_PREFIX="/opt"  # end without "/"
+PRIORITY=170079
+
+#################################################################
+#		   LOGGER
+#################################################################
+LOG_LEVEL_ON=0
+LOG_LEVEL_TRACE=1
+LOG_LEVEL_DEBUG=2
+LOG_LEVEL_INFO=3
+LOG_LEVEL_WARN=4
+LOG_LEVEL_ERROR=5
+LOG_LEVEL_FATAL=6
+LOG_LEVEL_OFF=7
+
+LOG_LEVEL=$LOG_LEVEL_INFO
+
+ECHO_LOG() {
+    [ "$1" -ge $LOG_LEVEL ] && echo -e "\033[31m $2:\033[0m $3" >&2
+}
+
+TRACE() {
+    ECHO_LOG $LOG_LEVEL_TRACE "TRACE" "$1"
+}
+
+DEBUG() {
+    ECHO_LOG $LOG_LEVEL_DEBUG "DEBUG" "$1"
+}
+
+INFO() {
+    ECHO_LOG $LOG_LEVEL_INFO "INFO" "$1"
+}
+
+WARN() {
+    ECHO_LOG $LOG_LEVEL_WARN  "WARN" "$1"
+}
+
+ERROR() {
+    ECHO_LOG $LOG_LEVEL_ERROR "ERROR" "$1"
+}
+
+FATAL() {
+    ECHO_LOG $LOG_LEVEL_FATAL "FATAL" "$1" && exit 1
+}
+
+#########################################################################
+
+FORCE_MODE() {
+    [[ $INSTALL_FORCE == false ]] && echo -e "INSTALL_FORCE = $INSTALL_FORCE, \n exit" && exit 0
+}
+
+PLATFORM=`uname`
+ARCH=`uname -p`
+OS="UnKnow"
+
+if [[ $UID != 0 ]]
+then
+    INFO " This script neeeds to be run with sudo, like this:"
+    echo -e "\n  sudo $0 $*\n"
+    exit 1
+fi
+
+if [[ -f /etc/debian_version ]]
+then
+    OS="Debian"
+elif [[ -f /etc/redhat-release ]]
+then
+    OS="RedHat"
+else
+    OS="UnKnow"
+fi
+
+INFO "operate system : $OS"
+
+###################################################################
+#                   Java (1.7.0_79 OR 1.8.0_60)
+# Only Linux RedHat support
+# 参考
+# http://tecadmin.net/steps-to-install-java-on-centos-5-6-or-rhel-5-6/
+# http://askubuntu.com/questions/56104/how-can-i-install-sun-oracles-proprietary-java-jdk-6-7-8-or-jre
+###################################################################
+
+if [[ $PLATFORM == "Linux" ]]
+then
+    INFO "platform :$PLATFORM"
+    if [[ -z ${JAVA_HOME} ]]; then
+        # Find the actual location of the Java launcher: Compute the Java home from the location of the Java launcher:
+        java_launcher=`which java 2> /dev/null` && java_launcher=`readlink -f "${java_launcher}"` \
+		&& JAVA_HOME="${java_launcher%/bin/java}"
+        if [[ -n ${JAVA_HOME} ]]; then
+            WARN "java is installed in $JAVA_HOME" && FORCE_MODE
+        fi
+    else
+        WARN "java is installed in $JAVA_HOME" && FORCE_MODE
+    fi
+else
+    ERROR "Only Linux RedHat 5/6/7 support" && exit 1
+fi
+
+# Download Java Version
+
+
+if [[ $ARCH == "x86_64" ]]
+then
+    INFO "arch :  $ARCH"
+    if [[ $JAVA_VERSION == "7u79" ]]
+    then
+        INFO "expect install java version $JAVA_VERSION"
+    #wget --no-cookies --no-check-certificate --header "Cookie: \
+    #gpw_e24=http%3A%2F%2Fwww.oracle.com%2F;                    \
+    #oraclelicense=accept-securebackup-cookie"                  \
+    #"http://download.oracle.com/otn-pub/java/jdk/7u79-b15/jdk-7u79-linux-x64.tar.gz"
+    elif [[ $JAVA_VERSION == "8u60" ]]
+    then
+        INFO "expect install java version $JAVA_VERSION"
+    #wget --no-cookies --no-check-certificate --header "Cookie:
+    #gpw_e24=http%3A%2F%2Fwww.oracle.com%2F;
+    #oraclelicense=accept-securebackup-cookie"
+    #"http://download.oracle.com/otn-pub/java/jdk/8u60-b27/jdk-8u60-linux-x64.tar.gz"
+    else
+        FATAL "no support java version"
+    fi
+else
+    INFO "arch :  $ARCH"
+    if [[ $JAVA_VERSION == "7u79" ]]
+    then
+        INFO "expect install java version $JAVA_VERSION"
+        #wget --no-cookies --no-check-certificate --header "Cookie:
+        #gpw_e24=http%3A%2F%2Fwww.oracle.com%2F;
+        #oraclelicense=accept-securebackup-cookie"
+        #"http://download.oracle.com/otn-pub/java/jdk/7u79-b15/jdk-7u79-linux-i586.tar.gz"
+    elif [[ $JAVA_VERSION == "8u60" ]]
+    then
+        INFO "expect install java version $JAVA_VERSION"
+        #wget --no-cookies --no-check-certificate --header "Cookie:
+        #gpw_e24=http%3A%2F%2Fwww.oracle.com%2F;
+        #oraclelicense=accept-securebackup-cookie"
+        #"http://download.oracle.com/otn-pub/java/jdk/8u60-b27/jdk-8u60-linux-i586.tar.gz"
+
+    else
+        FATAL "no support java version"
+    fi
+fi
+
+JAVA_DIR=""
+#TODO jdk is exist
+if ! ls $JAVA_PREFIX | grep jdk >> /dev/null
+then
+    if [[ $ARCH == "x86_64" ]]
+    then
+        tar xzf jdk-"$JAVA_VERSION"-linux-x64.tar.gz -C $JAVA_PREFIX
+        JAVA_DIR="jdk1.7.0_79"
+    else
+        tar xzf jdk-"$JAVA_VERSION"-linux-i586.tar.gz -C $JAVA_PREFIX
+        JAVA_DIR="jdk1.8.0_60"
+    fi
+else 
+    JAVA_DIR=`ls $JAVA_PREFIX | grep jdk`
+    WARN "jdk has been extaracted at $JAVA_PREFIX" && FORCE_MODE
+fi
+
+
+#Install Java with Alternatives
+
+JAVA_PATH="$JAVA_PREFIX/$JAVA_DIR"
+mkdir -p $JAVA_PREFIX; cd $JAVA_PATH
+
+
+#if java, javac, jar installed, exit 0; man alternatives
+if [[ $OS == "RedHat" ]]
+then
+    alternatives --display java && WARN "java has been configed " && FORCE_MODE \
+|| alternatives --install /usr/bin/java java $JAVA_PATH/bin/java $PRIORITY
+    alternatives --set java $JAVA_PATH/bin/java
+
+    alternatives --display jar &&  WARN "jar has been configed "  && FORCE_MODE \
+|| alternatives --install /usr/bin/jar jar $JAVA_PATH/bin/jar $PRIORITY
+    alternatives --set  jar $JAVA_PATH/bin/jar
+
+    alternatives --display javac && WARN "javac has been configed " && FORCE_MODE \
+|| alternatives --install /usr/bin/javac javac $JAVA_PATH/bin/javac $PRIORITY 
+    alternatives --set  javac $JAVA_PATH/bin/javac
+
+elif [[ $OS == "Debian" ]]
+then
+    #TODO
+    echo "Debian"
+    #sudo mv ./jdk1.7* /usr/lib/jvm/jdk1.7.0
+    update-alternatives --install /usr/bin/java java $JAVA_PATH/bin/java 1
+    sudo update-alternatives --config java
+
+    sudo update-alternatives --install /usr/bin/javac javac $JAVA_PATH/bin/javac 1
+    sudo update-alternatives --install /usr/bin/javaws javaws $JAVA_PATH/bin/javaws 1
+    sudo chmod a+x /usr/bin/java
+    sudo chmod a+x /usr/bin/javac
+    sudo chmod a+x /usr/bin/javaws
+    sudo chown -R root:root $JAVA_PATH
+fi
+
+#Check Installed Java Version
+java -version
+
+#Configuring Environment Variables 
+#in /etc/environment
+if  cat /etc/environment | grep "JAVA_HOME" && cat /etc/environment | grep "JRE_HOME"
+then
+   WARN "JAVA_HOME has be configed" 
+   if FORCE_MODE
+   then
+       sed -i "s/JAVA_HOME.*/JAVA_HOME=$JAVA_PATH/" /etc/environment
+       sed -i "s/JRE_HOME.*/JRE_HOME=$JAVA_PATH/jre/" /etc/environment
+   else
+       exit 1 
+   fi
+else 
+
+cat >> /etc/environment <<EOF
+export JAVA_HOME=$JAVA_PATH
+export JRE_HOME=$JAVA_PATH/jre
+export PATH=$PATH:$JAVA_PATH/bin:$JAVA_PATH/jre/bin
+EOF
+
+fi
+
+#Check Java is installed and Setting correctly
+[[ -z ${JAVA_HOME} ]] && WARN "Need to set JAVA_HOME environment variable" && FORCE_MODE
+[[ ! -x ${JAVA_HOME}/bin/java ]] && WARN "Cannot find an executable JVM at path ${JAVA_HOME}/bin/java check your JAVA_HOME" && FORCE_MODE
+
+###########################################################################
+# # Reference https://launchpad.net/~webupd8team/+archive/ubuntu/java
+# Ubuntu
+# sudo apt-get install python-software-properties
+# add-apt-repository ppa:webupd8team/java
+# apt-get update
+# #Java 8
+# apt-get install oracle-java8-installer
+# apt-get install oracle-java8-set-default
+# #Java 7
+# apt-get install oracle-java8-installer
+# apt-get install oracle-java8-set-default
+# java -version
+# FireFox 
+# mkdir ~/.mozilla/plugins
+# ln -s /usr/lib/jvm/jdk1.7.0/jre/lib/amd64/libnpjp2.so ~/.mozilla/plugins/
+# sudo /etc/init.d/apparmor restart
+############################################################################
