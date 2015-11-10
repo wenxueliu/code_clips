@@ -1,0 +1,19 @@
+#! /bin/bash
+
+#ovs-vsctl add-br ovs0
+#ovs-vswitchd --pidfile --detach
+
+#ovsdb-server --remote=punix:/usr/local/var/run/openvswitch/db.sock --remote=db:Open_vSwitch,Open_vSwitch,manager_options --private-key=db:Open_vSwitch,SSL,private_key --certificate=db:Open_vSwitch,SSL,certificate --bootstrap-ca-cert=db:Open_vSwitch,SSL,ca_cert --pidfile --detach
+
+OVS_PID=`ps aux | grep  "[o]vs-vswitchd " | awk '{ print $2} '`
+kill $OVS_PID
+
+ovs-vswitchd unix:/usr/local/var/run/openvswitch/db.sock -vconsole:emer -vsyslog:err -vfile:info --mlockall --no-chdir --pidfile=/usr/local/var/run/openvswitch/ovs-vswitchd.pid  --detach --monitor --log-file=/usr/local/var/log/openvswitch/ovs-vswitchd.log
+
+
+OVSDB_PID=`ps aux | grep  "[o]vsdb-server " | awk '{ print $2 }'`
+kill $OVSDB_PID
+
+ovsdb-server /usr/local/etc/openvswitch/conf.db -vconsole:emer -vsyslog:err -vfile:info  --remote=punix:/usr/local/var/run/openvswitch/db.sock --remote=db:Open_vSwitch,Open_vSwitch,manager_options --private-key=db:Open_vSwitch,SSL,private_key --certificate=db:Open_vSwitch,SSL,certificate --bootstrap-ca-cert=db:Open_vSwitch,SSL,ca_cert --pidfile=/usr/local/var/run/openvswitch/ovsdb-server.pid  --detach --no-chdir --log-file=/usr/local/var/log/openvswitch/ovsdb-server.log --monitor
+
+ovs-vsctl show
