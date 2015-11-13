@@ -125,6 +125,18 @@ while true; do
 
 #==================================================================
 
+时间截转时间
+
+date -d@1234567890
+
+实时查看本机网络服务的活动状态。
+
+lsof –i
+
+后台运行一段不终止的程序，并可以随时查看它的状态
+
+screen -d -m -S some_name ping my_router
+
 在远程机器上运行一段脚本
 
     ssh user@server bash < /path/to/local/script.sh
@@ -139,9 +151,11 @@ vim一个远程文件
 
 一句话实现一个HTTP服务，把当前目录设为HTTP服务目录，可以通过http://localhost:8000访问。
 
-    python -m SimpleHTTPServer 
+    python -m SimpleHTTPServer
 
 
-查看最常用的十条命令 
+查看最常用的十条命令
 
     history | awk '{CMD[$2]++;count++;} END { for (a in CMD )print CMD[a] " " CMD[a]/count*100 "% " a }' | grep -v "./" | column -c3 -s " " -t | sort -nr | nl | head -n10
+
+====================================================================
