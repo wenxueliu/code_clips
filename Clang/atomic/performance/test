@@ -1,0 +1,15 @@
+#! /bin/bash
+
+NUM=4
+NUMMAX=100000000
+for i in `seq 1 `; do
+    ./main $i $NUMMAX 0
+done
+
+for i in `seq 1 `; do
+    ./main $i $NUMMAX 1
+done
+
+for i in `seq 1 `; do
+    ./main $i $NUMMAX 2
+done
