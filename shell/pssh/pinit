@@ -1,0 +1,50 @@
+#! /bin/bash
+
+. log
+. config
+
+LOG_LEVEL=$LOG_LEVEL_DEBUG
+CLUSTER=${CLUSTER:-$1}
+
+INFO "connect to cluster: $CLUSTER"
+if ! tmux has-session -t $CLUSTER; then
+    tmux new-session -s $CLUSTER -d
+else
+    ERROR "cluster $CLUSTER exist !!!"
+    tmux list-windows -t $CLUSTER -F "CLUSTER:#{session_name} NODE:#{window_name}"
+    exit 1
+fi
+
+
+#TODO if window exist, new window
+
+WINDOWS_SIZE=${#WINDOWS[*]}
+WINDOWS_SIZE=$(($WINDOWS_SIZE - 1))
+
+#create window if windows doesn't exist, otherwise, give WARN message,
+for index in `seq 0 $WINDOWS_SIZE`; do
+    DEBUG $index
+    DEBUG ${WINDOWS[$index]}
+    DEBUG ${IP_LIST[$index]}
+    DEBUG ${CMD[$index]}
+    if tmux find-window -N -F "#{window_name}" -t $CLUSTER ${WINDOWS[$index]}; then
+        WARN "window ${WINDOWS[$index]} exists in $CLUSTER !"
+    else
+        tmux new-window -n ${WINDOWS[$index]} -t $CLUSTER -d "${CMD[$index]}"
+    fi
+done
+
+#log pane message to file.
+#if $LOG_CMD; then
+#    for index in `seq 0 $WINDOWS_SIZE`; do
+#        local ansi_codes="(\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]|)"
+#        local PANE_LOG_FILE=$LOG_PREFIX/tmux_${WINDOWS[$index]}.log
+#        DEBUG $PANE_LOG_FILE
+#        #tmux pipe-pane -t ${WINDOWS[$index]} "exec cat - | sed -r 's/$ansi_codes//g' >> $PANE_LOG_FILE"
+#        INFO "log ${WINDOWS[$index]} to $PANE_LOG_FILE"
+#    done
+#else
+#    echo "session log is off"
+#fi
+
+tmux ls

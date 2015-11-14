@@ -1,0 +1,11 @@
+#! /bin/bash
+
+CLUSTER="acloud"
+WINDOWS=(211 212 213 311 312 313)
+IP_LIST=("127.0.0.1" "127.0.0.1" "127.0.0.1" "127.0.0.1" "127.0.0.1" "127.0.0.1")
+CMD=("ssh wenxueliu@127.0.0.1" "ssh wenxueliu@127.0.0.1" "ssh wenxueliu@127.0.0.1" "ssh wenxueliu@127.0.0.1" "ssh wenxueliu@127.0.0.1" "ssh wenxueliu@127.0.0.1")
+
+NEW_WINDOW_FORCE=false
+
+LOG_CMD=true
+LOG_CMD_PATH_PREFIX=~/

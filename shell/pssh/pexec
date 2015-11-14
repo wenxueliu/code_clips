@@ -1,0 +1,25 @@
+#! /bin/bash
+
+###################################################
+# TODO
+# 1.
+#
+###################################################
+CLUSTER=$1
+NODE=$2
+
+if [[ $# < 3 ]]; then
+    echo "Usage: $0 CLUSTER NODE [CMD ...]"
+    exit 0
+fi
+
+echo "cluster: "$CLUSTER
+echo "node: "$NODE
+
+CMD=""
+for cmd in ${@:3}; do
+    CMD="$CMD $cmd"
+done
+echo "CMD: " $CMD
+
+tmux send-keys -t $CLUSTER:$NODE "$CMD" C-m

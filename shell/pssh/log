@@ -1,0 +1,55 @@
+#! /bin/bash
+
+#################################################################
+#		   LOGGER
+#################################################################
+LOG_LEVEL_ON=0
+LOG_LEVEL_TRACE=1
+LOG_LEVEL_DEBUG=2
+LOG_LEVEL_INFO=3
+LOG_LEVEL_WARN=4
+LOG_LEVEL_ERROR=5
+LOG_LEVEL_FATAL=6
+LOG_LEVEL_OFF=7
+
+LOG_LEVEL=$LOG_LEVEL_INFO
+LOG_FILE=
+
+DATE_FORMAT=$(date "+%Y-%m-%d %H:%M:%S")
+CURRENT_DIR=$(cd `dirname $0`; pwd)
+
+ECHO_LOG() {
+    [ "$1" -lt $LOG_LEVEL ] && return
+    if [ -z $LOG_FILE ];then
+        echo -e " $DATE_FORMAT [$CURRENT_DIR:$LINENO] \033[31m $2:\033[0m $3" >&2
+    else
+        echo -e " $DATE_FORMAT [$CURRENT_DIR:$LINENO] \033[31m $2:\033[0m $3" >> $LOG_FILE
+    fi
+}
+
+TRACE() {
+    ECHO_LOG $LOG_LEVEL_TRACE "TRACE" "$1"
+}
+
+DEBUG() {
+    ECHO_LOG $LOG_LEVEL_DEBUG "DEBUG" "$1"
+}
+
+INFO() {
+    ECHO_LOG $LOG_LEVEL_INFO "INFO" "$1"
+}
+
+WARN() {
+    ECHO_LOG $LOG_LEVEL_WARN  "WARN" "$1"
+}
+
+ERROR() {
+    ECHO_LOG $LOG_LEVEL_ERROR "ERROR" "$1"
+}
+
+FATAL() {
+    ECHO_LOG $LOG_LEVEL_FATAL "FATAL" "$1" && exit 1
+}
+
+
+#INFO "test info"

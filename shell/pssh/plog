@@ -1,0 +1,68 @@
+#! /bin/bash
+
+. config
+. log
+
+LOG_LEVEL=$LOG_LEVEL_DEBUG
+ARG0=$0
+LOG_PREFIX=${LOG_PREFIX:-~}
+NODE_LOG_FILE=$LOG_PREFIX/tmux_${NODE}.log
+
+usage() {
+    echo "Usage: $1 node on|off [log_name]"
+    exit 0
+}
+
+log_cmd() {
+    local NODE=$1
+    local NODE_LOG_SWITCH=$2
+    local NODE_LOG_FILE=$3
+    #local ansi_codes="(\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]|)"
+    if [[ $NODE_LOG_SWITCH = "on" ]] ; then
+        DEBUG "tmux pipe-pane -t ${NODE} \"exec cat - | sed -r 's/$ansi_codes//g' >> $NODE_LOG_FILE\""
+        #tmux pipe-pane -t ${NODE} "exec cat - | sed -r 's/$ansi_codes//g' >> $NODE_LOG_FILE"
+        tmux pipe-pane -t ${NODE} "cat >> $NODE_LOG_FILE"
+        exit 0
+    elif [[ $NODE_LOG_SWITCH = "off" ]]; then
+        tmux pipe-pane -t ${NODE}
+        exit 0
+    else
+        usage
+        exit 1
+    fi
+}
+
+
+main() {
+    NODE=$1
+    NODE_LOG_SWITCH=$2
+    NODE_LOG_NAME=$3
+
+    DEBUG $#
+    if [[ $# < 2 ]]; then
+        usage $ARG0
+    fi
+
+    if [[ $# = 2 ]]; then
+        DEBUG "log_cmd $NODE $NODE_LOG_SWITCH"
+        log_cmd $NODE $NODE_LOG_SWITCH
+    fi
+
+    if [[ $# = 3 ]]; then
+        NODE_LOG_FILE=$LOG_PREFIX/$NODE_LOG_NAME
+        if [[ -f $NODE_LOG_FILE ]]; then
+            ERROR "node $NODE log file $NODE_LOG_FILE exist"
+            exit 1
+        else
+            DEBUG "log_cmd $NODE $NODE_LOG_SWITCH $NODE_LOG_FILE"
+            log_cmd $NODE $NODE_LOG_SWITCH $NODE_LOG_FILE
+        fi
+    fi
+}
+
+unittest() {
+    main
+    main 211 off
+    main 211 on testplog
+}
+main $1 $2 $3

@@ -1,0 +1,24 @@
+#! /bin/bash
+
+. log
+LOG_LEVEL=$LOG_LEVEL_INFO
+
+CLUSTER=$1
+DEBUG "args num: "$#
+DEBUG "cluster: "$CLUSTER
+DEBUG "node: "$NODE
+
+
+if [[ $# = 0 ]]; then
+    tmux list-windows -a -F "CLUSTER:#{session_name} NODE:#{window_name}"
+    exit 0
+fi
+
+if tmux has-session -t $CLUSTER >> /dev/null 2>&1; then
+    tmux list-windows -t $CLUSTER -F "GLUSTER:#{session_name} NODE:#{window_name}"
+else
+    INFO "cluster $CLUSTER doesn't exist, you may create it with pinit"
+    tmux list-windows -a -F "CLUSTER:#{session_name} NODE:#{window_name}"
+fi
+
+
