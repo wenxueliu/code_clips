@@ -9,3 +9,94 @@ NEW_WINDOW_FORCE=false
 
 LOG_CMD=true
 LOG_CMD_PATH_PREFIX=~/
+
+#without check args, it doesn't need
+
+get_cluster_options() {
+    local cluster=$1
+    local key=$2
+    tmux show-options -v -s -t "$cluster" "$key"
+}
+
+set_cluster_option() {
+    local cluster=$1
+    local key=$2
+    local value=$3
+    tmux show-options -s -t "$cluster" "@$key" "$value"
+}
+
+get_node_option() {
+    local node=$1
+    local key=$2
+    tmux show-options -v -w -t "@$node" "$key"
+}
+
+set_node_option() {
+    local node=$1
+    local key=$2
+    local value=$3
+    tmux set-option -w -t "$node" "@$key" "$value"
+}
+
+get_all_option() {
+    local key=$1
+    tmux show-options -v -g "@$key"
+}
+
+set_all_option() {
+    local key=$2
+    local value=$3
+    tmux show-options -g "@$key" "$value"
+}
+
+set_all_log() {
+    local value=$1
+    set_all_options "@log" "$value"
+}
+
+get_all_log() {
+    local value=$1
+    get_all_options "@log"
+}
+
+get_node_log() {
+    local node=$1
+    get_node_options $node "@log"
+}
+
+set_node_log() {
+    local node=$1
+    local value=$2
+    set_node_options $node "@log" "$value"
+}
+
+get_cluster_log() {
+    local cluster=$1
+    get_cluster_option $node "@log"
+}
+
+set_cluster_log() {
+    local cluster=$1
+    local value=$2
+    set_cluster_option $node "@log" "$value"
+}
+
+is_nod_log() {
+    local node=$1
+    local log=`get_node_log $node`
+    if [[ $log = "on" ]]; then
+       return true
+    else
+       return false
+    fi
+}
+
+is_cluster_log() {
+    local cluster=$1
+    local log=`get_cluster_log $cluster`
+    if [[ $log = "on" ]]; then
+       return true
+    else
+       return false
+    fi
+}
