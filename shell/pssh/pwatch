@@ -1,0 +1,9 @@
+#! /bin/bash
+
+if [[ $# = 0 ]];then
+    echo "Usage: $0 node"
+    exit 1
+fi
+#CLUSTER=$1
+NODE=$1
+watch "tmux capture-pane -p -t $NODE"
