@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * 摘自 http://codefine.co/%E4%B8%80%E7%A7%8D%E5%B8%B8%E8%A7%81%E7%9A%84%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E5%9C%BA%E6%99%AF%E7%9A%84%E5%A4%84%E7%90%86/?utm_source=rss&utm_medium=rss&utm_campaign=%25e4%25b8%2580%25e7%25a7%258d%25e5%25b8%25b8%25e8%25a7%25
  */
 
-public class masterSlaveThread {
+public class MasterSlaveThread {
     /*
     * 用于标志长时间独占表的线程是否正在工作。
     */
