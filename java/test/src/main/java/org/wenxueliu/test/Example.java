@@ -33,6 +33,7 @@ import org.wenxueliu.concurrent.MyThreadLocalPlus;
 import org.wenxueliu.demotask.DemoExecutor;
 import org.wenxueliu.classloader.MyClassLoader;
 import org.wenxueliu.pdfbox.PDFEditor;
+import org.wenxueliu.sizeof.ObjectSize;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 /**
@@ -46,6 +47,11 @@ import org.slf4j.LoggerFactory;
 public class Example {
 
     private static Logger logger = LoggerFactory.getLogger(Example.class);
+
+    void ObjectSizeTest() {
+        ObjectSize.testSize();
+    }
+
 
     void pdfboxTest() {
         PDFEditor read = new PDFEditor();
@@ -468,7 +474,8 @@ public class Example {
         //e.ThreadLocalPlusTest();
         //e.ClassLoaderTest();
         //e.StrTest();
-        e.pdfboxTest();
+        //e.pdfboxTest();
+        e.ObjectSizeTest();
 	}
 
     public void testNode() {
