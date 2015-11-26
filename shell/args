@@ -1,0 +1,32 @@
+#! /bin/bash
+
+echo "$# parameters";
+
+echo Using '$*';
+for p in $*;
+do
+    echo "[$p]";
+done;
+
+echo Using '"$*"';
+for p in "$*";
+do
+    echo "[$p]";
+done;
+
+echo Using '$@';
+for p in $@;
+do
+    echo "[$p]";
+done;
+
+echo Using '"$@"';
+for p in "$@";
+do
+    echo "[$p]";
+done
+
+echo Using partial
+for p in ${@:2}; do
+    echo $p
+done
