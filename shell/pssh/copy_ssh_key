@@ -1,0 +1,29 @@
+#!/usr/bin/expect
+
+exp_internal  0
+
+set host [lindex $argv 0]
+set port [lindex $argv 1]
+set user [lindex $argv 2]
+set passwd [lindex $argv 3]
+set key_path [lindex $argv 4]
+
+set timeout 30
+spawn ssh-copy-id -i $key_path $user@$host -p $port
+expect {
+    "spawn ssh*" { exp_continue }
+    "(yes/no)" { send "yes\r"; exp_continue }
+    "are already installed" { exp_continue }
+    "install the new keys" { exp_continue }
+    "*password:" {
+        if { $passwd == "" } {
+            send_user  "\npassword is null !!!\n"
+            exit 1
+        } else {
+            send "$passwd\r";
+        }
+    }
+    "already exist on the remote system." { send_user "key has been installed, try run ssh $user@$host -p $port !!\n" }
+    "that you weren't expecting" { send_user "key has been installed, try run ssh $user@$host -p $port !!\n" }
+}
+expect timeout { send_user "ssh connect timeout !!!\n"; exit 1 }

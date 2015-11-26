@@ -1,0 +1,30 @@
+#!/usr/bin/expect
+
+exp_internal  0
+
+set host [lindex $argv 0]
+set port [lindex $argv 1]
+set user [lindex $argv 2]
+set passwd [lindex $argv 3]
+set cmd   [lindex $argv 4]
+
+set timeout 5
+spawn ssh $user@$host -p $port
+expect {
+    "spawn ssh*" { exp_continue }
+    "(yes/no)" { send "yes\r"; exp_continue }
+    "to the list of known hosts" { exp_continue }
+    "password:" {
+        if { $passwd == "" } {
+            send_user "password is null !!!\n"
+            exit 1
+        } else {
+            send "$passwd\r"; 
+        }
+    }
+    "Last login:*" { send_user "has auto login\n" }
+    timeout { send_user "ssh connect timeout\n"; exit 1 }
+}
+expect *$user* { send "ifconfig\r" }
+expect *$user* { send "$cmd\r" }
+interact
