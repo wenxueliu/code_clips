@@ -1,0 +1,15 @@
+#!/bin/bash
+#count.sh
+#
+echo "count cpu hex output"
+[ $# -ne 1 ] && echo "$1 is cpu core number" && exit 1
+ccn=$1
+echo "Print eth0 cpu affinity"
+for((i=0; i<${ccn}; i++))
+do
+    echo "---------------------"
+    echo "cpu core $i is affinity"
+    ((affinity=(1<<$i)))
+    echo "obase=16;${affinity}" | bc
+done
+
