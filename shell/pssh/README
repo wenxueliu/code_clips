@@ -1,1 +1,2 @@
-Test with tmux 1.8
+auto_login [host] [port] [user] [passwd]
+copy_ssh_key [host] [port] [user] [passwd]
