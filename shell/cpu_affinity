@@ -1,0 +1,18 @@
+#! /bin/bash
+
+if [[ $# != 1 ]]; then
+    echo "Usage: $0 program_name"
+    exit 0
+fi
+
+pids=`/bin/pidof $1`
+cpunum=`cat /proc/cpuinfo | grep processor | wc -l`
+
+cpuidx=0
+for pid in $pids
+do
+    /usr/bin/taskset -cp ${cpuidx} ${pid}
+    cpuidx=$(($cpuidx+1))
+    cpuidx=$(($cpuidx%$cpunum))
+    echo $cpuidx
+done
