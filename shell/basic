@@ -41,7 +41,6 @@
 
 ### & 和 && 有什么区别
 
-
     & - 希望脚本在后台运行的时候使用它
     && - 当前一个脚本成功完成才执行后面的命令/脚本的时候使用它
 
@@ -51,8 +50,7 @@
 
 ###如何只用 echo 命令获取字符串变量的一部分 ?
 
-###如果给定字符串 variable="User:123:321:/home/dir"，如何只用 echo 命令获取
-home_dir ?
+###如果给定字符串 variable="User:123:321:/home/dir"，如何只用 echo 命令获取 home_dir ?
 
     echo ${variable#*:*:*:}
     echo ${variable##*:}
