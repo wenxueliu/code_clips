@@ -1,0 +1,24 @@
+#! /bin/bash
+
+rrdfile=tcp.rrd
+dst_name=tcp_recv
+image=tcp.png
+step=2
+start_time=$((`date "+%s"` - $step))
+
+./createdb  $rrdfile $dst_name $step $start_time
+
+time=$(( $start_time + $step ))
+value=300
+for i in {0..10}; do
+    echo update $time $value
+    time=`date "+%s"`
+    ./updatedb $rrdfile $time $dst_name $value
+    value=$(( $value + $i * 300 ))
+    sleep $step
+done
+
+echo "graph between $start_time and  $time"
+
+rrdtool graph $image -s $start_time -e $time -h 400 \
+         DEF:linea=$rrdfile:$dst_name:AVERAGE LINE3:linea#FF0000:"Line A" \

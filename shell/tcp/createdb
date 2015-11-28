@@ -1,0 +1,42 @@
+#! /bin/bash
+
+#
+
+if (( $# < 2 )); then
+    echo "Usage $0 filename.rrd dst_name"
+    exit 0
+fi
+rrd_file=$1
+
+ds_name=$2
+
+step=$3
+step=${step:-10}
+
+now=`date "+%s"`
+start_time=$4
+start_time=${start_time:-$now}
+#start_time=978300900
+heartbeat=600
+min=U
+max=U
+dst=DERIVE
+#dst=ABSOLUTE
+
+if [[ $dst = "GAUGE" || $dst = "COUNTER" || $dst = "DERIVE" || $dst = "ABSOLUTE" ]]; then
+
+    #rrdtool create $rrd_file --start `date "+%s"` -s $step --no-overwrite DS:$ds_name:$dst:$heartbeat:$min:$max \
+    #    RRA:AVERAGE:0.5:1:10 \
+    #    RRA:MIN:0.5:1:10 \
+    #    RRA:MAX:0.5:1:10
+
+    rrdtool create $rrd_file --start $start_time -s $step --no-overwrite DS:$ds_name:$dst:$heartbeat:$min:$max \
+        RRA:AVERAGE:0.5:1:10
+
+elif [[ $dst = "COMPUTE" ]]; then
+
+    rrdtool create $rrd_file -s $step --no-overwrite DS:$ds_name:$dst: \
+else
+    echo "dst isn't support!!!"
+    exit 1
+fi

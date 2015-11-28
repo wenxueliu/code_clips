@@ -1,0 +1,21 @@
+#! /bin/bash
+
+if [[ $# < 3 ]]; then
+    echo "Usage $0 filename timetamp ds-name[:ds-name]...] value[:value...]"
+    exit 1
+fi
+
+rrdfile=$1
+timetamp=$2
+ds_list=$3
+value_list=$4
+
+ds_size=`echo $ds_list | awk -F ":" '{ print NF }'`
+value_size=`echo $value_list | awk -F ":" '{ print NF }'`
+
+if (( $ds_size != $value_size )); then
+    echo "Usage $0 filename timetamp ds-name[:ds-name]...] value[:value...]"
+    echo "dst-name must match value !!"
+    exit 1
+fi
+rrdtool update $rrdfile -t $ds_list $timetamp:$value_list
