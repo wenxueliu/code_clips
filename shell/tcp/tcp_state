@@ -17,8 +17,15 @@ state_list=("ESTABLISHED" "SYN_SENT" "SYN_RECV" "FIN_WAIT1" "FIN_WAIT2"
 #don't change flowing variable if you can grep it
 start_time=`date "+%s"`
 ds_type=ABSOLUTE
-cf=AVERAGE
+
+avarage_interval=1
 rrd_size=10000
+
+max_interval=10
+max_size=$(( $rrd_size / ( $max_interval / $avarage_interval)))
+
+min_interval=10
+min_size=$(( $rrd_size / ( $max_interval / $avarage_interval)))
 
 tcp_state() {
     local ip=$1
@@ -77,7 +84,9 @@ tcp_state_rrd_init() {
         local rrd_path=`get_rrd_path $rrd_dir $state`
         rrdtool create $rrd_path --start $start_time -s $step\
             DS:$state:$ds_type:600:U:U \
-            RRA:$cf:0.5:1:$rrd_size
+            RRA:AVERAGE:0.5:1:$rrd_size \
+            RRA:MAX:0.5:$max_interval:$max_size \
+            RRA:MIN:0.5:$min_interval:$min_size
     done
 }
 
@@ -129,7 +138,9 @@ tcp_state_rrd_done() {
     for state in ${state_list[@]}; do
         local rrd_path=`get_rrd_path $rrd_dir $state`
         rrdtool graph "$rrd_dir/$state"".png" -s $begin_time -e $end_time -h 400 \
-        DEF:line=$rrd_path:$state:$cf LINE1:line#FF0000:"Line A"
+        DEF:line1=$rrd_path:$state:AVERAGE LINE1:line1#FF0000:"Line A" \
+        DEF:line2=$rrd_path:$state:MAX LINE1:line2#00FF00:"Line B" \
+        DEF:line3=$rrd_path:$state:MIN LINE1:line3#0000FF:"Line C"
     done
 }
 
