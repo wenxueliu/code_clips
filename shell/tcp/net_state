@@ -219,7 +219,7 @@ state_rrd_start() {
         tcp_state_rrd_update $ip $port
         net_state_rrd_update
         sleep $update_step
-        trap "state_rrd_done " EXIT
+        trap "state_rrd_done; exit 0" EXIT
     done
 }
 
@@ -239,8 +239,9 @@ state_rrd_done() {
         rrdtool graph "$rrd_dir/$state"".png" -s $begin_time -e $end_time -h 400 \
             DEF:line1=$rrd_path:$state:AVERAGE LINE1:line1#FF0000:"Average" \
             DEF:line2=$rrd_path:$state:MAX LINE1:line2#00FF00:"Max" \
-            DEF:line3=$rrd_path:$state:MIN LINE1:line3#0000FF:"Min"
+            DEF:line3=$rrd_path:$state:MIN LINE1:line3#0000FF:"Min" >/dev/null
     done
+    INFO "rrd grap done"
 }
 
 tcp_state_test () {
@@ -263,4 +264,5 @@ net_state_test () {
 #dump_net_list
 
 state_rrd_start
+
 
