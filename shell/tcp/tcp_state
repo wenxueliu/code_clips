@@ -1,0 +1,149 @@
+#! /bin/bash
+
+#######################################################
+# @author : liuwenxue
+# TODO
+# 1. supprot sepcific process
+#######################################################
+
+#trap "stop it; exit 0" SIGINT SIGTERM
+rrd_dir=$1
+rrd_dir=${rrd_dir:-"/tmp/tcp"}
+
+#the state will monitor, change is for your perfer
+state_list=("ESTABLISHED" "SYN_SENT" "SYN_RECV" "FIN_WAIT1" "FIN_WAIT2"
+    "TIME_WAIT" "CLOSE" "CLOSE_WAIT" "LAST_ACK" "LISTEN" "CLOSING" "UNKNOWN")
+
+#don't change flowing variable if you can grep it
+start_time=`date "+%s"`
+ds_type=ABSOLUTE
+cf=AVERAGE
+rrd_size=10000
+
+tcp_state() {
+    local ip=$1
+    local port=$2
+    now=`date "+%s"`
+
+    if [[ -z $ip ]];then
+        cur_state=`netstat -ant4 | awk '{ if (NR > 2) {state[$6]++ } } END { for (s in state){ print s ":" state[s] } }'`
+    elif [[ -z $port ]];then
+        #TODO
+        #cur_state=`netstat -ant4 | awk '/$ip/{ state[$6]++ } END { for (s in state){ print s ":" state[s] } }'`
+        cur_state=`netstat -ant4 | grep $ip | awk ' { state[$6]++ } END { for (s in state){ print s ":" state[s] } }'`
+    else
+        #TODO
+        #cur_state=`netstat -ant4 | awk '/$ip:$port/{ state[$6]++ } END { for (s in state){ print s ":" state[s] } }'`
+        cur_state=`netstat -ant4 | grep "$ip:$port" | awk '{ state[$6]++ } END { for (s in state){ print s ":" state[s] } }'`
+    fi
+
+    for s in $cur_state; do
+        echo "$now:$s"
+    done
+}
+
+tcp_state_continue() {
+    local step=$1
+    step=${step:-1}
+    local ip=$2
+    local port=$3
+    step=${step:-1}
+    while true; do
+        tcp_state $ip $port
+        sleep $step
+    done
+}
+
+get_rrd_path() {
+    local rrd_dir=$1
+    local rrd_file=$2
+    mkdir -p $rrd_dir
+    echo $rrd_dir/$rrd_file".rrd"
+}
+
+#init tcp state with rrd file
+tcp_state_rrd_init() {
+    mkdir -p $rrd_dir
+
+    local step=$1
+    step=${step:-1}
+
+    local start_time=$2
+    local now=`date "+%s"`
+    local default_start_time=$(( $now - $step ))
+    start_time=${start_time:-$default_start_time}
+
+    for state in ${state_list[@]}; do
+        local rrd_path=`get_rrd_path $rrd_dir $state`
+        rrdtool create $rrd_path --start $start_time -s $step\
+            DS:$state:$ds_type:600:U:U \
+            RRA:$cf:0.5:1:$rrd_size
+    done
+}
+
+#update tcp state to rrdfile
+#such as
+#1. tcp_state_rrd_update "127.0.0.1"
+#2. tcp_state_rrd_update "127.0.0.1" "80"
+tcp_state_rrd_update() {
+    local ip=$1
+    local port=$2
+
+    for state in `tcp_state $ip $port`; do
+        local timestamp=`echo $state | awk -F ":" '{ print $1}'`
+        local rrd_file=`echo $state | awk -F ":" '{ print $2}'`
+        local value=`echo $state | awk -F ":" '{ print $3}'`
+        echo $state = $rrd_file $timestamp $value
+        rrd_path=`get_rrd_path $rrd_dir $rrd_file`
+        echo $rrd_path
+        rrdtool update $rrd_path $timestamp:$value
+    done
+}
+
+#init tcp state with rrd file and update tcp state with fixed step
+tcp_state_rrd_start() {
+    local ip=$1
+    local port=$2
+    init_step=1
+    update_step=1
+
+    tcp_state_rrd_init $init_step
+
+    while true; do
+        tcp_state_rrd_update $ip $port
+        sleep $update_step
+        trap "tcp_state_rrd_done " EXIT
+    done
+}
+
+
+tcp_state_rrd_done() {
+    local begin_time=$1
+    begin_time=${begin_time:-$start_time}
+    echo $start_time $begin_time
+
+    local end_time=$2
+    local now=$((`date "+%s"` + 10))
+    end_time=${end_time:-$now}
+
+    for state in ${state_list[@]}; do
+        local rrd_path=`get_rrd_path $rrd_dir $state`
+        rrdtool graph "$rrd_dir/$state"".png" -s $begin_time -e $end_time -h 400 \
+        DEF:line=$rrd_path:$state:$cf LINE1:line#FF0000:"Line A"
+    done
+}
+
+tcp_state_test () {
+    echo "tcp_state_continue $step"
+    tcp_state_continue $step
+
+    #echo tcp_state_continue 1 "127.0.0.1"
+    #tcp_state_continue 1 "127.0.0.1"
+
+    #echo tcp_state_continue 1 "127.0.0.1" "53"
+    #tcp_state_continue 1 "127.0.0.1" "53"
+}
+
+
+#tcp_state_test
+tcp_state_rrd_start
