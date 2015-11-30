@@ -6,8 +6,9 @@
 # 1. supprot sepcific process
 #######################################################
 
-rrd_dir=$1
-rrd_dir=${rrd_dir:-"/tmp/tcp"}
+#rrd_dir=$1
+exec_mode=$1
+rrd_dir=${rrd_dir:-"/tmp/tcp6"}
 
 INFO() {
     echo $1
@@ -52,12 +53,11 @@ ipex_list=(IpExtInNoRoutes IpExtInMcastPkts IpExtOutMcastPkts IpExtInBcastPkts I
 net_list=(${ipv4_list[@]} ${tcpv4_list[@]}  ${tcpex_list[@]}  ${ipex_list[@]})
 
 state_list=("ESTABLISHED" "SYN_SENT" "SYN_RECV" "FIN_WAIT1" "FIN_WAIT2"
-    "TIME_WAIT" "CLOSE" "CLOSE_WAIT" "LAST_ACK" "LISTEN" "CLOSING" "UNKNOWN"
-    ${net_list[@]})
+    "TIME_WAIT" "CLOSE" "CLOSE_WAIT" "LAST_ACK" "LISTEN" "CLOSING" "UNKNOWN")
 
 #CAUTION: don't change flowing variable if you can grep it
 start_time=`date "+%s"`
-ds_type=ABSOLUTE
+ds_type=GAUGE
 
 avarage_interval=1
 rrd_size=10000
@@ -152,7 +152,18 @@ state_rrd_init() {
         local rrd_path=`get_rrd_path $rrd_dir $state`
         DEBUG "create $state in $rrd_path"
         rrdtool create $rrd_path --start $start_time -s $step\
-            DS:$state:$ds_type:600:U:U \
+            DS:$state:GAUGE:600:U:U \
+            RRA:AVERAGE:0.5:1:$rrd_size \
+            RRA:MAX:0.5:$max_interval:$max_size \
+            RRA:MIN:0.5:$min_interval:$min_size
+    done
+
+    for state in ${net_list[@]}; do
+        state=`get_state_name $state`
+        local rrd_path=`get_rrd_path $rrd_dir $state`
+        DEBUG "create $state in $rrd_path"
+        rrdtool create $rrd_path --start $start_time -s $step\
+            DS:$state:ABSOLUTE:600:U:U \
             RRA:AVERAGE:0.5:1:$rrd_size \
             RRA:MAX:0.5:$max_interval:$max_size \
             RRA:MIN:0.5:$min_interval:$min_size
@@ -209,8 +220,8 @@ get_state_name () {
 state_rrd_start() {
     local ip=$1
     local port=$2
-    init_step=1
-    update_step=3
+    init_step=10
+    update_step=10
 
     state_rrd_init $init_step
 
@@ -222,7 +233,6 @@ state_rrd_start() {
         trap "state_rrd_done; exit 0" EXIT
     done
 }
-
 
 state_rrd_done() {
     local begin_time=$1
@@ -236,8 +246,9 @@ state_rrd_done() {
     for state in ${state_list[@]}; do
         state=`get_state_name $state`
         local rrd_path=`get_rrd_path $rrd_dir $state`
+        DEBUG "plotting ${rrd_dir}/${state}.png"
         rrdtool graph "$rrd_dir/$state"".png" -s $begin_time -e $end_time -h 400 \
-            DEF:line1=$rrd_path:$state:AVERAGE LINE1:line1#FF0000:"Average" \
+            DEF:line1=$rrd_path:$state:AVERAGE AREA:line1#FF0000:"Average" \
             DEF:line2=$rrd_path:$state:MAX LINE1:line2#00FF00:"Max" \
             DEF:line3=$rrd_path:$state:MIN LINE1:line3#0000FF:"Min" >/dev/null
     done
@@ -263,6 +274,37 @@ net_state_test () {
 #tcp_state_test
 #dump_net_list
 
-state_rrd_start
+main ()
+{
+    if [[ $exec_mode = start ]]; then
+        for s in ${state_list[@]}; do
+            rrd_file=`get_state_name $s`
+            rrd_path=$rrd_dir/${rrd_file}.*
+            if [[ -f ${rrd_path}.rrd ]]; then
+                echo "will remove" `ls $rrd_path`
+                rm -rf $rrd_path
+            fi
+        done
+        state_rrd_start > /dev/null &
+    elif [[ $exec_mode = stop ]]; then
+        pid_tmp=`ps aux |grep "net_state.sh start" |grep -v grep | awk '{print $2}'`
+        if [[ -n $pid_tmp ]]; then
+            kill $pid_tmp
+        else
+            echo "net_state is not running"
+        fi
+    elif [[ $exec_mode = status ]]; then
+        strtmp=`ps aux |grep "net_state.sh start" |grep -v grep`
+        if [[ $? = 0 ]]; then
+            echo $strtmp | awk '{print "pid:"$2,$9,$12,$13}'
+        else
+            echo "$0 is not start"
+        fi
+    else
+        echo "error message : ($0 $@) no support exec mode : start | stop | status"
+        exit 1
+    fi
+}	# ----------  end of function main  ----------
 
+main
 
