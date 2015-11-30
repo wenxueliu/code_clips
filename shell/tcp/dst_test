@@ -1,5 +1,43 @@
 #! /bin/bash
 
+#  参考 http://oss.oetiker.ch/rrdtool/tut/rrd-beginners.en.html
+#  DST (Data Source Type) defines the type of the DS. It can be COUNTER, DERIVE,
+#  ABSOLUTE, GAUGE. A DS declared as COUNTER will save the rate of change of the
+#  value over a step period. This assumes that the value is always increasing (the
+#  difference between the current and the previous value is greater than 0).
+#  Traffic counters on a router are an ideal candidate for using COUNTER as DST.
+#  DERIVE is the same as COUNTER, but it allows negative values as well. If you
+#  want to see the rate of change in free disk space on your server, then you might
+#  want to use the DERIVE data type. ABSOLUTE also saves the rate of change, but it
+#  assumes that the previous value is set to 0. The difference between the current
+#  and the previous value is always equal to the current value. Thus it just stores
+#  the current value divided by the step interval (300 seconds in our example).
+#  GAUGE does not save the rate of change. It saves the actual value itself. There
+#  are no divisions or calculations. Memory consumption in a server is a typical
+#  example of gauge. The difference between the different types DSTs can be
+#  explained better with the following example:
+
+#  The next parameter is heartbeat. In our example, heartbeat is 600 seconds. If
+#  the database does not get a new PDP within 300 seconds, it will wait for
+#  another 300 seconds (total 600 seconds). If it doesn't receive any PDP within
+#  600 seconds, it will save an UNKNOWN value into the database. This UNKNOWN
+#  value is a special feature of RRDtool - it is much better than to assume a
+#  missing value was 0 (zero) or any other number which might also be a valid
+#  data value. For example, the traffic flow counter on a router keeps
+#  increasing. Lets say, a value is missed for an interval and 0 is stored
+#  instead of UNKNOWN. Now when the next value becomes available, it will
+#  calculate the difference between the current value and the previous value (0)
+#  which is not correct. So, inserting the value UNKNOWN makes much more sense
+#  here.
+
+#  The next two parameters are the minimum and maximum value, respectively. If
+#  the variable to be stored has predictable maximum and minimum values, this
+#  should be specified here. Any update value falling out of this range will be
+#  stored as UNKNOWN.
+#
+
+
+
 rrdtool create all.rrd --start 978300900 \
          DS:a:COUNTER:600:U:U \
          DS:b:GAUGE:600:U:U \
@@ -20,7 +58,7 @@ rrdtool update all.rrd \
          978303900:3000:2:1200:3000
 
 rrdtool graph all1.png -s 978300600 -e 978304200 -h 400 \
-         DEF:linea=all.rrd:a:AVERAGE LINE3:linea#FF0000:"Line A" \
-         DEF:lineb=all.rrd:b:AVERAGE LINE3:lineb#00FF00:"Line B" \
+         DEF:linea=all.rrd:a:AVERAGE AREA:linea#FF0000:"Line A" \
+         DEF:lineb=all.rrd:b:AVERAGE LINE2:lineb#00FF00:"Line B" \
          DEF:linec=all.rrd:c:AVERAGE LINE3:linec#0000FF:"Line C" \
-         DEF:lined=all.rrd:d:AVERAGE LINE3:lined#000000:"Line D"
+         DEF:lined=all.rrd:d:AVERAGE LINE1:lined#000000:"Line D"
