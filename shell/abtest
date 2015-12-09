@@ -1,0 +1,76 @@
+#! /bin/bash
+
+exec_mode=$1
+core=2
+con=100
+time=10
+log_dir=/tmp/ab
+log_name="ab_${con}_${time}"
+ip="localhost"
+port=80
+url="$ip:$port"
+
+#trap "kill $$" TERM EXIT
+
+usage() {
+    echo "$0 start|stop|status"
+}
+
+if [[ $# = 0 ]]; then
+    usage
+    exit 0
+fi
+
+get_statistic() {
+    local log_dir=$log_dir
+    local concurreny=0
+    local requests=0
+    local time_per_req_all=0
+    local time_per_req=0
+    local time_taken=$time
+    for result_file in `ls $log_dir`; do
+        result_file="$log_dir/$result_file"
+        concurrent_tmp=`grep "Concurrency Level" $result_file | awk '{ print $3 }'`
+        concurreny=`awk -v total=$concurreny -v tmp=$concurrent_tmp 'BEGIN {print total+tmp }'`
+
+        time_per_req_all_tmp=`grep -E "Time per request:.*\(mean\)" $result_file | awk '{ print $4 }'`
+        time_per_req_all=`awk -v total=$time_per_req_all -v tmp=$time_per_req_all_tmp 'BEGIN {print total+tmp }'`
+
+        time_per_req_tmp=`grep -E "Time per request:.*\(mean, across.*" $result_file | awk '{ print $4 }'`
+        time_per_req=`awk -v total=$time_per_req -v tmp=$time_per_req_tmp 'BEGIN {print (total+tmp)/2 }'`
+    done
+    printf "%-20s %-20s %-20s %-20s\n" concurreny  time_per_req_all time_per_req time_tokan
+    printf "%-20s %-20s %-20s %-20s\n" $concurreny $time_per_req_all  $time_per_req $time_taken
+    printf "\n"
+}
+
+main() {
+    exec_mode=$1
+
+    if [[ $exec_mode = "start" ]]; then
+        mkdir -p $log_dir
+        for i in `seq 0 $core`; do
+            log_path=${log_dir}/${log_name}_$i
+            cat /dev/null > $log_path
+            taskset -c $i ab -c $con -t $time http://$url/ |tee -a $log_path &
+        done
+        for pid in `ps axu | grep [a]b -c | awk '{ print $2 }'`; do 
+            renice -n -10 -p $pid
+        done
+        wait
+    elif [[ $exec_mode = "stop" ]]; then
+        for pid in `ps axu | grep "[a]b -c" | awk '{ print $2 }'`; do 
+            kill $pid
+        done
+    elif [[ $exec_mode = "status" ]]; then
+        for pid in `ps axu | grep "[a]b -c" | awk '{ print $2 }'`; do 
+            echo $pid
+        done
+    elif [[ $exec_mode = "info" ]]; then
+        get_statistic $log_dir
+    else
+        usage
+    fi
+}
+
+main $1
