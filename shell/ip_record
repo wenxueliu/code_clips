@@ -3,7 +3,8 @@
 count=0
 while true; do
     sleep 5
-    netstat -ant | grep ES | awk '{ print  $4 " " $5  }' >> /tmp/ip_list
+    local_ip=`ip a show wlan0 | grep "inet " | awk '{ print $2 }' | awk -F '/' '{print $1}'`
+    netstat -ant | grep $local_ip | grep ES | awk '{ print  $4 " " $5  }' >> /tmp/ip_list
     count=$(( $count + 1 ))
     if (( $count == 100 )); then
         awk '!_[$2]++{print}' /tmp/ip_list >> /home/wenxueliu/ip_list
