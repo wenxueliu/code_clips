@@ -4,6 +4,178 @@
 # @author : liuwenxue
 # TODO
 # 1. supprot sepcific process
+#
+# --------------- IP ------------
+# IpInReceives    : total packets received
+# IpInHdrErrors   :
+# IpInAddrErrors  : incoming packets discarded
+# IpForwDatagrams : forwarded
+# IpInUnknownProtos :
+# IpInDiscards    : incoming packets discarded
+# IpInDelivers    : incoming packets delivered
+# IpOutRequests   : requests sent out
+# IpOutDiscards   : outgoing packets dropped
+# IpOutNoRoutes   : dropped because of missing route
+# IpReasmTimeout  :
+# IpReasmReqds
+# IpReasmOKs
+# IpReasmFails
+# IpFragOKs
+# IpFragFails     : fragments failed
+# IpFragCreates
+#
+# --------------- ICMP ------------
+# IcmpInMsgs      : ICMP messages received
+# IcmpInErrors    : input ICMP message failed.
+# IcmpInCsumErrors:  
+# IcmpInDestUnreachs : 
+# IcmpInTimeExcds :
+# IcmpInParmProbs :
+# IcmpInSrcQuenchs:
+# IcmpInRedirects :
+# IcmpInEchos     : echo requests
+# IcmpInEchoReps  : echo replies
+# IcmpInTimestamps:
+# IcmpInTimestampReps :
+# IcmpInAddrMasks
+# IcmpInAddrMaskReps :
+# IcmpOutMsgs
+# IcmpOutErrors
+# IcmpOutDestUnreachs:
+# IcmpOutTimeExcds : destination unreachable
+# IcmpOutParmProbs
+# IcmpOutSrcQuenchs
+# IcmpOutRedirects
+# IcmpOutEchos     :
+# IcmpOutEchoReps  :
+# IcmpOutTimestamps : echo request
+# IcmpOutTimestampReps :
+# IcmpOutAddrMasks
+# IcmpOutAddrMaskReps :
+# IcmpMsgInType0
+# IcmpMsgInType3
+# IcmpMsgInType8
+# IcmpMsgOutType0
+# IcmpMsgOutType3
+# IcmpMsgOutType8
+#
+#
+# --------------- TCP ------------
+# TcpActiveOpens  : connections established
+# TcpPassiveOpens : passive connection openings
+# TcpAttemptFails : failed connection attempts
+# TcpEstabResets  : connection resets received
+# TcpInSegs       : segments received
+# TcpOutSegs      : segments send out
+# TcpRetransSegs  : segments retransmited
+# TcpInErrs       : bad segments received.
+# TcpOutRsts      : resets sent
+# TcpInCsumErrors : 
+# TcpExtSyncookiesSent
+# TcpExtSyncookiesRecv            0                  0.0
+# TcpExtSyncookiesFailed          0                  0.0
+# TcpExtEmbryonicRsts             0                  0.0
+# TcpExtPruneCalled               0                  0.0
+# TcpExtRcvPruned                 0                  0.0
+# TcpExtOfoPruned                 0                  0.0
+# TcpExtOutOfWindowIcmps          0                  0.0
+# TcpExtLockDroppedIcmps          0                  0.0
+# TcpExtArpFilter
+# TcpExtTW                        : TCP sockets finished time wait in fast timer 
+# TcpExtTWRecycled                :
+# TcpExtTWKilled                  0                  0.0
+# TcpExtPAWSPassive               0                  0.0
+# TcpExtPAWSActive                0                  0.0
+# TcpExtPAWSEstab                 1                  0.0
+# TcpExtDelayedACKs               : delayed acks sent
+# TcpExtDelayedACKLocked          0                  0.0
+# TcpExtDelayedACKLost            : 271                0.0
+# TcpExtListenOverflows           0                  0.0
+# TcpExtListenDrops               0                  0.0
+# TcpExtTCPPrequeued              : packets directly queued to recvmsg prequeue.
+# TcpExtTCPDirectCopyFromBacklog                    0.0
+# TcpExtTCPDirectCopyFromPrequeue : bytes directly received in process context from prequeue
+# TcpExtTCPPrequeueDropped        0                  0.0
+# TcpExtTCPHPHits                 : packet headers predicted
+# TcpExtTCPHPHitsToUser           : packets header predicted and directly queued to user
+
+# TcpExtTCPPureAcks               : acknowledgments not containing data payload received
+# TcpExtTCPHPAcks                 : predicted acknowledgments
+# TcpExtTCPRenoRecovery           : 
+# TcpExtTCPSackRecovery           : times recovered from packet loss by selective acknowledgedgements
+# TcpExtTCPSACKReneging           0                  0.0
+# TcpExtTCPFACKReorder            0                  0.0
+# TcpExtTCPSACKReorder            0                  0.0
+# TcpExtTCPRenoReorder            0                  0.0
+# TcpExtTCPTSReorder              0                  0.0
+# TcpExtTCPFullUndo               0                  0.0
+# TcpExtTCPPartialUndo            0                  0.0
+# TcpExtTCPDSACKUndo              0                  0.0
+# TcpExtTCPLossUndo               : congestion windows recovered without slow start after partial ack
+# TcpExtTCPLostRetransmit         0                  0.0
+# TcpExtTCPRenoFailures           0                  0.0
+# TcpExtTCPSackFailures           : timeouts after SACK recovery
+# TcpExtTCPLossFailures           : timeouts in loss state
+# TcpExtTCPFastRetrans            : fast retransmits
+# TcpExtTCPForwardRetrans         : forward retransmits
+# TcpExtTCPSlowStartRetrans       : retransmits in slow start
+# TcpExtTCPTimeouts               : other TCP timeouts
+# TcpExtTCPLossProbes             : TCPLossProbes
+# TcpExtTCPLossProbeRecovery      : TCPLossProbeRecovery
+# TcpExtTCPRenoRecoveryFail       0                  0.0
+# TcpExtTCPSackRecoveryFail       : SACK retransmits failed
+# TcpExtTCPSchedulerFailed        0                  0.0
+# TcpExtTCPRcvCollapsed           0                  0.0
+# TcpExtTCPDSACKOldSent           : DSACKs sent for old packets
+# TcpExtTCPDSACKOfoSent           : DSACKs sent for out of order packets
+# TcpExtTCPDSACKRecv              : DSACKs received
+# TcpExtTCPDSACKOfoRecv           : DSACKs for out of order packets received
+# TcpExtTCPAbortOnData            : connections reset due to unexpected data # 关键
+# TcpExtTCPAbortOnClose           : connections reset due to early user close
+# TcpExtTCPAbortOnMemory          0                  0.0
+# TcpExtTCPAbortOnTimeout         : connections aborted due to timeout
+# TcpExtTCPAbortOnLinger          0                  0.0
+# TcpExtTCPAbortFailed            0                  0.0
+# TcpExtTCPMemoryPressures        0                  0.0
+# TcpExtTCPSACKDiscard            0                  0.0
+# TcpExtTCPDSACKIgnoredOld        : TCPDSACKIgnoredOld
+# TcpExtTCPDSACKIgnoredNoUndo     : TCPDSACKIgnoredNoUndo
+# TcpExtTCPSpuriousRTOs           : TCPSpuriousRTOs
+# TcpExtTCPMD5NotFound            0                  0.0
+# TcpExtTCPMD5Unexpected          0                  0.0
+# TcpExtTCPSackShifted            0                  0.0
+# TcpExtTCPSackMerged             0                  0.0
+# TcpExtTCPSackShiftFallback      : TCPSackShiftFallback
+# TcpExtTCPBacklogDrop            0                  0.0
+# TcpExtTCPMinTTLDrop             0                  0.0
+# TcpExtTCPDeferAcceptDrop        0                  0.0
+# TcpExtIPReversePathFilter       0                  0.0
+# TcpExtTCPTimeWaitOverflow       0                  0.0
+# TcpExtTCPReqQFullDoCookies      0                  0.0
+# TcpExtTCPReqQFullDrop           0                  0.0
+# TcpExtTCPRetransFail            : TCPRetransFail
+# TcpExtTCPRcvCoalesce            : TCPRcvCoalesce
+# TcpExtTCPOFOQueue               : TCPOFOQueue
+# TcpExtTCPOFODrop                0                  0.0
+# TcpExtTCPOFOMerge               : TCPOFOMerge
+# TcpExtTCPChallengeACK           : TCPChallengeACK
+# TcpExtTCPSYNChallenge           : TCPSYNChallenge
+# TcpExtTCPFastOpenActive         0                  0.0
+# TcpExtTCPFastOpenPassive        0                  0.0
+# TcpExtTCPFastOpenPassiveFail    0                  0.0
+# TcpExtTCPFastOpenListenOverflow 0                  0.0
+# TcpExtTCPFastOpenCookieReqd     0                  0.0
+# TcpExtTCPSpuriousRtxHostQueues  : TCPSpuriousRtxHostQueues
+# TcpExtBusyPollRxPackets         0                  0.0
+
+#
+# ------  UDP ------------
+# UdpInDatagrams : packets received
+# UdpNoPorts     : packets to unknown port received.
+# UdpInErrors    : packet receive errors
+# UdpOutDatagrams: packets sent
+
+
 #######################################################
 
 #rrd_dir=$1
@@ -244,6 +416,15 @@ state_rrd_done() {
     end_time=${end_time:-$now}
 
     for state in ${state_list[@]}; do
+        state=`get_state_name $state`
+        local rrd_path=`get_rrd_path $rrd_dir $state`
+        DEBUG "plotting ${rrd_dir}/${state}.png"
+        rrdtool graph "$rrd_dir/$state"".png" -s $begin_time -e $end_time -h 400 \
+            DEF:line1=$rrd_path:$state:AVERAGE AREA:line1#FF0000:"Average" \
+            DEF:line2=$rrd_path:$state:MAX LINE1:line2#00FF00:"Max" \
+            DEF:line3=$rrd_path:$state:MIN LINE1:line3#0000FF:"Min" >/dev/null
+    done
+    for state in ${net_list[@]}; do
         state=`get_state_name $state`
         local rrd_path=`get_rrd_path $rrd_dir $state`
         DEBUG "plotting ${rrd_dir}/${state}.png"
