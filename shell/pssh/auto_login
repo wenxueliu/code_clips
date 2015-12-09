@@ -1,5 +1,9 @@
 #!/usr/bin/expect
 
+#TODO 
+#ssh-keyscan
+#ssh -o StrictHostKeyChecking no
+
 exp_internal  0
 
 set host [lindex $argv 0]
