@@ -1,13 +1,13 @@
 #! /bin/bash
 
 exec_mode=$1
-core=2
-con_begin=100
-con_end=300
-foot=100
+core=${core:-2}
+con_begin=${con_begin:-100}
+con_end=${con_end:-300}
+foot=${foot:-100}
 #the steps must be int
 steps=$(( ($con_end - $con_begin) / $foot + 1 ))
-time=5
+time_s=${time_s:-5}
 log_dir=/tmp/ab
 ip="localhost"
 port=80
@@ -66,7 +66,7 @@ get_statistic() {
             total_req[$i]=`awk -v total=${total_req[$i]} -v tmp=${total_req_tmp[$i]} 'BEGIN {print total+tmp }'`
             time_per_req_all[$i]=`awk -v total=${time_per_req_all[$i]} -v tmp=${time_per_req_all_tmp[$i]} 'BEGIN {print (total+tmp)/2 }'`
             time_per_req[$i]=`awk -v total=$time_per_req[$i] -v tmp=$time_per_req_tmp[$i] 'BEGIN {print (total+tmp)/2 }'`
-            time_taken[$i]=$time
+            time_taken[$i]=$time_s
         done
     done
     #printf "%-15s %-15s %-15s %-15s %-15s\n" concurreny tps total_req time_per_req_all time_per_req time_taken
@@ -78,14 +78,58 @@ get_statistic() {
     printf "\n"
 }
 
+get_statistic_old() {
+    local log_dir=$log_dir
+    local concurreny=()
+    local tps=()
+    local total_req=()
+    local time_per_req_all=()
+    local time_per_req=()
+    local time_taken=()
+    for result_file in `ls $log_dir`; do
+        result_file="$log_dir/$result_file"
+
+        concurrent_tmp=`grep "Concurrency Level" $result_file | awk '{ print $3 }'`
+        concurrent_tmp=( $concurrent_tmp )
+
+        total_req_tmp=`grep "Complete requests:" $result_file | awk '{ print $3 }'`
+        total_req_tmp=( $total_req_tmp )
+
+        tps_tmp=`grep "Requests per second:" $result_file | awk '{ print $4 }'`
+        tps_tmp=( $tps_tmp )
+
+        time_per_req_all_tmp=`grep -E "Time per request:.*\(mean\)" $result_file | awk '{ print $4 }'`
+        time_per_req_all_tmp=( $time_per_req_all_tmp )
+
+        time_per_req_tmp=`grep -E "Time per request:.*\(mean, across.*" $result_file | awk '{ print $4 }'`
+        time_per_req_tmp=( $time_per_req_tmp )
+
+        time_taken_tmp=`grep -r "Time taken for tests" $result_file | awk '{ print $5 }'`
+        time_taken_tmp=( $time_taken_tmp )
+
+        for ((i=0; i< $steps; i++));do
+            concurreny[$i]=`awk -v total=${concurreny[$i]} -v tmp=${concurrent_tmp[$i]} 'BEGIN {print total+tmp }'`
+            tps[$i]=`awk -v total=${tps[$i]} -v tmp=${tps_tmp[$i]} 'BEGIN {print total+tmp }'`
+            total_req[$i]=`awk -v total=${total_req[$i]} -v tmp=${total_req_tmp[$i]} 'BEGIN {print total+tmp }'`
+            time_per_req_all[$i]=`awk -v total=${time_per_req_all[$i]} -v tmp=${time_per_req_all_tmp[$i]} 'BEGIN {print (total+tmp)/2 }'`
+            time_per_req[$i]=`awk -v total=$time_per_req[$i] -v tmp=$time_per_req_tmp[$i] 'BEGIN {print (total+tmp)/2 }'`
+            time_taken[$i]=$time_s
+        done
+    done
+    for (( i=0; i < $steps; i++)); do
+        #printf "%-15s %-15s %-15s %-15s %-15s\n" ${concurreny[$i]} ${tps[$i]} ${total_req[$i]} ${time_per_req_all[$i]}  ${time_per_req[$i]} ${time_taken[$i]}
+        printf "%-15s %-15s\n" ${concurreny[$i]} ${tps[$i]}
+    done
+}
+
 abtest__() {
     local con=$1
-    local time=$2
+    local time_s=$2
 
     log_name="abtest"
     for i in `seq 0 $core`; do
         log_path=${log_dir}/${log_name}_$i
-        taskset -c $i ab -c $con -t $time http://$url/ |tee -a $log_path &
+        taskset -c $i ab -c $con -t $time_s http://$url/ |tee -a $log_path &
     done
     for pid in `ps axu | grep [a]b -c | awk '{ print $2 }'`; do 
         renice -n -10 -p $pid
@@ -96,7 +140,7 @@ abtest__() {
 abtest() {
     for ((con=1; con <=$steps; con++)) {
         con_cur=$(( $con * $con_begin))
-        abtest__ $con_cur $time
+        abtest__ $con_cur $time_s
     }
 }
 
@@ -120,7 +164,7 @@ main() {
             echo $pid
         done
     elif [[ $exec_mode = "info" ]]; then
-        get_statistic $log_dir
+        get_statistic_old $log_dir
     else
         usage
     fi
