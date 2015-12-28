@@ -80,6 +80,7 @@ fi
 
 INFO "operate system : $OS"
 
+set -x
 ###################################################################
 #                   Java (1.7.0_79 OR 1.8.0_60)
 # Only Linux RedHat support
@@ -177,7 +178,7 @@ mkdir -p $JAVA_PREFIX; cd $JAVA_PATH
 #if java, javac, jar installed, exit 0; man alternatives
 if [[ $OS == "RedHat" ]]
 then
-    alternatives --display java && WARN "java has been configed " && FORCE_MODE \
+    alternatives --display java 2> /dev/null && WARN "java has been configed " && FORCE_MODE \
 || alternatives --install /usr/bin/java java $JAVA_PATH/bin/java $PRIORITY
     alternatives --set java $JAVA_PATH/bin/java
 
@@ -194,7 +195,7 @@ then
     #TODO
     echo "Debian"
     #sudo mv ./jdk1.7* /usr/lib/jvm/jdk1.7.0
-    update-alternatives --display java && WARN "java has been configed " && FORCE_MODE \
+    update-alternatives --display java 2> /dev/null && WARN "java has been configed " && FORCE_MODE \
 || update-alternatives --install /usr/bin/java java $JAVA_PATH/bin/java $PRIORITY
     update-alternatives --set java $JAVA_PATH/bin/java
 
@@ -215,13 +216,25 @@ fi
 #Check Installed Java Version
 java -version
 
-RC_FILE="~/.bashrc"
+#RC_FILE="~/.bashrc"
+RC_FILE="/etc/environment"
+RC_DIR=`dirname $RC_FILE`
+mkdir -p $RC_DIR
+#touch $RC_FILE
 #Configuring Environment Variables
 #in /etc/environment
-if  cat $RC_FILE | grep "JAVA_HOME" && cat /etc/environment | grep "JRE_HOME"
-then
+if  grep "JAVA_HOME" $RC_FILE; then
    WARN "JAVA_HOME has be configed"
-   if FORCE_MODE
+   if $FORCE_MODE
+   then
+       sed -i "s/JAVA_HOME.*/JAVA_HOME=$JAVA_PATH/"  $RC_FILE
+       sed -i "s/JRE_HOME.*/JRE_HOME=$JAVA_PATH/jre/" $RC_FILE
+   else
+       exit 1
+   fi
+elif grep "JRE_HOME" $RC_FILE ; then
+   WARN "JRE_HOME has be configed"
+   if $FORCE_MODE
    then
        sed -i "s/JAVA_HOME.*/JAVA_HOME=$JAVA_PATH/"  $RC_FILE
        sed -i "s/JRE_HOME.*/JRE_HOME=$JAVA_PATH/jre/" $RC_FILE
@@ -238,11 +251,13 @@ EOF
 
 fi
 
-. $RC_FILE
+source $RC_FILE
 
 #Check Java is installed and Setting correctly
 [[ -z ${JAVA_HOME} ]] && WARN "Need to set JAVA_HOME environment variable" && FORCE_MODE
 [[ ! -x ${JAVA_HOME}/bin/java ]] && WARN "Cannot find an executable JVM at path ${JAVA_HOME}/bin/java check your JAVA_HOME" && FORCE_MODE
+
+INFO "if 'echo $JAVA_HOME' is null, relogin to make sure the java home is set"
 
 ###########################################################################
 # # Reference https://launchpad.net/~webupd8team/+archive/ubuntu/java
