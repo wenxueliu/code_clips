@@ -1,0 +1,5 @@
+apt-get install nodejs calibre
+npm install gitbook -g
+gitbook --version;ebook-convert --version
+
+#参考 http://bingu.net/791/gitbook2pdf/
