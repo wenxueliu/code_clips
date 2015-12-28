@@ -1,0 +1,36 @@
+#http://www.docoreos.com/?p=79
+OVS="openvswitch-2.3.1"
+OVS_TAR=$OVS.tar.gz
+apt-get install -y build-essential fakeroot debhelper \
+                    autoconf automake bzip2 libssl-dev \
+                    openssl graphviz python-all procps \
+                    python-qt4 python-zopeinterface \
+                    python-twisted-conch libtool
+if [  -f $OVS_TAR ]
+then
+    echo "$OVS_TAR has exist"
+else
+    wget http://openvswitch.org/releases/$OVS_TAR
+fi
+if [  -d $OVS ]
+then
+   rm -r $OVS
+fi
+tar -zxvf  $OVS_TAR
+cd $OVS/
+
+dpkg-checkbuilddeps
+
+DEB_BUILD_OPTIONS='parallel=8 nocheck' fakeroot debian/rules binary
+
+if [ $? ne 0 ]
+then
+   exit 1
+fi
+
+cd ..
+sudo dpkg -i openvswitch-common_2.3.1-1_amd64.deb openvswitch-switch_2.3.1-1_amd64.deb
+
+ovs-vsctl -V
+lsmod | grep openv
+ps -ef | grep [o]vs
