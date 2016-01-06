@@ -1,0 +1,101 @@
+#! /bin/bash
+
+package="apache-ant-1.9.6-bin.tar.gz"
+package_dir="apache-ant-1.9.6"
+ANT_PATH="/opt/ant"
+FORCE_MODE=0
+
+#################################################################
+#		   LOGGER
+#################################################################
+LOG_LEVEL_ON=0
+LOG_LEVEL_TRACE=1
+LOG_LEVEL_DEBUG=2
+LOG_LEVEL_INFO=3
+LOG_LEVEL_WARN=4
+LOG_LEVEL_ERROR=5
+LOG_LEVEL_FATAL=6
+LOG_LEVEL_OFF=7
+
+LOG_LEVEL=$LOG_LEVEL_INFO
+
+ECHO_LOG() {
+    [ "$1" -ge $LOG_LEVEL ] && echo -e "\033[31m $2:\033[0m $3" >&2
+}
+
+INFO() {
+    ECHO_LOG $LOG_LEVEL_INFO "INFO" "$1"
+}
+
+WARN() {
+    ECHO_LOG $LOG_LEVEL_WARN  "WARN" "$1"
+}
+
+
+if [[ ! -f $package ]]; then
+    echo "$package doesn't exist, download it ...."
+    wget http://mirrors.cnnic.cn/apache//ant/binaries/$package
+fi
+if [[ ! -f KEYS ]]; then
+    echo "KEYS doesn't exist, download it ...."
+    wget https://www.apache.org/dist/ant/KEYS
+fi
+if [[ ! -f ${package}.asc ]]; then
+    echo "${package}.asc doesn't exist, download it .... "
+    wget https://www.apache.org/dist/ant/binaries/${package}.asc
+fi
+gpg --import KEYS
+gpg --verify ${package}.asc
+
+if [[ ! -d ${package_dir} ]]; then
+    tar xvfz apache-ant-1.9.6-bin.tar.gz -C $ANT_PREFIX
+fi
+
+#====== config ant ===============
+mkdir -p $ANT_PATH
+if [[ ! -d $ANT_PATH/bin ]]; then
+    cp -r $ANT_PATH/$package_dir/bin/ $ANT_PATH
+else
+    INFO "$ANT_PATH/bin exists !, skip"
+    INFO "    if $ANT_PATH/bin is expected, skip"
+    INFO "    else rm -rf $ANT_PATH/bin, run this shell again"
+fi
+if [[ ! -d $ANT_PATH/lib ]]; then 
+    cp -r $ANT_PATH/$package_dir/lib/ $ANT_PATH
+else 
+    INFO "$ANT_PATH/lib exists !!!!!"
+    INFO "    if $ANT_PATH/lib is expected, skip"
+    INFO "    else rm -rf $ANT_PATH/lib, run this shell again"
+fi
+
+
+RC_FILE="/etc/environment"
+RC_DIR=`dirname $RC_FILE`
+mkdir -p $RC_DIR
+
+if  grep "ANT_HOME" $RC_FILE; then
+   WARN "ANT_HOME has be configed"
+   INFO "run echo \$ANT_HOME"
+   INFO "    if echo \$ANT_HOME is expected, skip it"
+   INFO "    else delete ANT_HOME from $RC_FILE, rerun this shell"
+   exit 1
+elif grep "JAVA_HOME" $RC_FILE; then
+
+cat >> $RC_FILE <<EOF
+export ANT_HOME=$ANT_PATH
+export PATH=$PATH:$ANT_PATH/bin
+EOF
+
+else
+   INFO "install java first !!!"
+   exit 1
+fi
+
+source $RC_FILE
+
+[[ -z ${ANT_HOME} ]] && WARN 'Need to set $ANT_HOME environment variable' && FORCE_MODE
+[[ ! -x ${ANT_HOME}/bin/ ]] && WARN "Cannot find an executable ant at path ${ANT_HOME}/bin/java check your ANT_HOME" && FORCE_MODE
+
+INFO "======================================================================="
+INFO 'run echo $ANT_HOME, if echo $ANT_HOME is null, relogin to make sure the ANT_HOME is set'
+INFO "======================================================================="
