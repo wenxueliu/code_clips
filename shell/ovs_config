@@ -1,0 +1,54 @@
+#! /bin/bash
+
+bridge="ovs0"
+bridge_ip="10.1.2.1"
+bridge_network="10.1.2.0"
+interface=("eth1" "eth2" "eth3" "eth4" "eth5" "eth6" "eth7")
+controller_ip="127.0.0.1"
+controller_port="6633"
+
+#optional
+protocols="OpenFlow13"
+datapath_id="0000000000000001"
+
+if [[ $UID != 0 ]]; then
+    echo " This script neeeds to be run with sudo, like this:"
+    echo -e "\n  sudo $0 $*\n"
+    exit 1
+fi
+
+for iface in ${interface[*]}; do
+    echo "setup $iface"
+    ifdown $iface
+    ifup $iface
+done
+
+ovs-vsctl --if-exists del-br $bridge
+ovs-vsctl add-br $bridge
+#ovs-vsctl set Bridge $bridge protocols=$protocols
+ovs-vsctl set Bridge $bridge other_config:datapath-id=$datapath_id
+
+ofport=1
+for iface in ${interface[*]}; do
+    echo "add $iface to $bridge"
+    ovs-vsctl add-port $bridge $iface -- set Interface $iface ofport_request=$ofport
+    ofport=$(( $ofport + 1))
+done
+
+ifconfig $bridge $bridge_ip netmask 255.255.255.0
+route add -net $bridge_network netmask 255.255.255.0 dev $bridge
+
+ovs-vsctl set-controller $bridge tcp:$controller_ip:$controller_port
+sudo ovs-vsctl show
+
+#LLDP
+#sudo ovs-ofctl add-flow ovs-switch "priority=1,dl_type=0x88CC,actions=controller"
+#ARP
+#sudo ovs-ofctl add-flow ovs-switch "priority=1,dl_type=0x806,nw_dst=10.1.2.11,actions=controller"
+#sudo ovs-ofctl add-flow ovs-switch "priority=1,dl_type=0x806,nw_dst=10.1.2.100,actions=controller"
+#ICMP
+#sudo ovs-ofctl add-flow ovs-switch "priority=1,dl_type=0x806,nw_proto=1,nw_dst=10.1.2.11,actions=controller"
+#Drop
+#sudo ovs-ofctl add-flow ovs-switch "priority=0,,actions=drop"
+
+
