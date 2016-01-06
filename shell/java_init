@@ -257,7 +257,9 @@ source $RC_FILE
 [[ -z ${JAVA_HOME} ]] && WARN "Need to set JAVA_HOME environment variable" && FORCE_MODE
 [[ ! -x ${JAVA_HOME}/bin/java ]] && WARN "Cannot find an executable JVM at path ${JAVA_HOME}/bin/java check your JAVA_HOME" && FORCE_MODE
 
+INFO "======================================================================="
 INFO "if 'echo $JAVA_HOME' is null, relogin to make sure the java home is set"
+INFO "======================================================================="
 
 ###########################################################################
 # # Reference https://launchpad.net/~webupd8team/+archive/ubuntu/java
