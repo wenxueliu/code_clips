@@ -1,4 +1,7 @@
 #http://www.docoreos.com/?p=79
+#
+#
+#------------- Ubuntu 14.04 ------------------------
 OVS="openvswitch-2.3.1"
 OVS_TAR=$OVS.tar.gz
 apt-get install -y build-essential fakeroot debhelper \
@@ -34,3 +37,26 @@ sudo dpkg -i openvswitch-common_2.3.1-1_amd64.deb openvswitch-switch_2.3.1-1_amd
 ovs-vsctl -V
 lsmod | grep openv
 ps -ef | grep [o]vs
+
+#------------- CentOS 7------------------------
+#https://n40lab.wordpress.com/2015/06/28/centos-7-installing-openvswitch-2-3-2-lts/
+
+yum -y install wget openssl-devel gcc make python-devel openssl-devel kernel-devel graphviz kernel-debug-devel autoconf automake rpm-build redhat-rpm-config libtool
+adduser ovs
+su - ovs
+
+mkdir -p ~/rpmbuild/SOURCES
+wget http://openvswitch.org/releases/openvswitch-2.3.2.tar.gz
+cp openvswitch-2.3.2.tar.gz ~/rpmbuild/SOURCES/
+tar xfz ~/rpmbuild/SOURCES/openvswitch-2.3.2.tar.gz
+sed 's/openvswitch-kmod, //g' openvswitch-2.3.2/rhel/openvswitch.spec > openvswitch-2.3.2/rhel/openvswitch_no_kmod.spec
+rpmbuild -bb --nocheck openvswitch-2.3.2/rhel/openvswitch_no_kmod.spec
+
+mkdir /etc/openvswitch
+yum localinstall /home/ovs/rpmbuild/RPMS/x86_64/openvswitch-2.3.2-1.x86_64.rpm
+yum install policycoreutils-python
+semanage fcontext -a -t openvswitch_rw_t "/etc/openvswitch(/.*)?"
+restorecon -Rv /etc/openvswitch
+systemctl start openvswitch.service
+chkconfig openvswitch on
+ovs-vsctl -V
