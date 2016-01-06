@@ -8,6 +8,7 @@ INSTALL_FORCE=true
 JAVA_VERSION="7u79" # JAVA_VERSION=8u60
 JAVA_PREFIX="/opt"  # end without "/"
 PRIORITY=170079
+PACKEGE_PATH="."
 
 #################################################################
 #		   LOGGER
@@ -78,9 +79,8 @@ else
     OS="UnKnow"
 fi
 
-INFO "operate system : $OS"
+INFO "operate system : `cat /etc/redhat-release`" 
 
-set -x
 ###################################################################
 #                   Java (1.7.0_79 OR 1.8.0_60)
 # Only Linux RedHat support
@@ -103,7 +103,8 @@ then
         WARN "java is installed in $JAVA_HOME" && FORCE_MODE
     fi
 else
-    ERROR "Only Linux RedHat 5/6/7 support" && exit 1
+    ERROR "Only Linux Debian and RedHat 5/6/7 support"
+    exit 1
 fi
 
 # Download Java Version
@@ -115,17 +116,29 @@ then
     if [[ $JAVA_VERSION == "7u79" ]]
     then
         INFO "expect install java version $JAVA_VERSION"
-    #wget --no-cookies --no-check-certificate --header "Cookie: \
-    #gpw_e24=http%3A%2F%2Fwww.oracle.com%2F;                    \
-    #oraclelicense=accept-securebackup-cookie"                  \
-    #"http://download.oracle.com/otn-pub/java/jdk/7u79-b15/jdk-7u79-linux-x64.tar.gz"
+        if [[ -f $PACKEGE_PATH/jdk-$JAVA_VERSION-linux-x64.tar.gz ]]; then
+            INFO "java tar package has been download, skip"
+        else
+            INFO "begin download java ...."
+            wget --no-cookies --no-check-certificate --header "Cookie: \
+            gpw_e24=http%3A%2F%2Fwww.oracle.com%2F;                    \
+            oraclelicense=accept-securebackup-cookie"                  \
+            "http://download.oracle.com/otn-pub/java/jdk/7u79-b15/jdk-7u79-linux-x64.tar.gz"
+            INFO "download java done"
+        fi
     elif [[ $JAVA_VERSION == "8u60" ]]
     then
         INFO "expect install java version $JAVA_VERSION"
-    #wget --no-cookies --no-check-certificate --header "Cookie:
-    #gpw_e24=http%3A%2F%2Fwww.oracle.com%2F;
-    #oraclelicense=accept-securebackup-cookie"
-    #"http://download.oracle.com/otn-pub/java/jdk/8u60-b27/jdk-8u60-linux-x64.tar.gz"
+        if [[ -f $PACKEGE_PATH/jdk-$JAVA_VERSION-linux-x64.tar.gz ]]; then
+            INFO "java tar package has been download, skip"
+        else
+            INFO "begin download java ...."
+            wget --no-cookies --no-check-certificate --header "Cookie: \
+            gpw_e24=http%3A%2F%2Fwww.oracle.com%2F;                    \
+            oraclelicense=accept-securebackup-cookie"                  \
+            "http://download.oracle.com/otn-pub/java/jdk/8u60-b27/jdk-8u60-linux-x64.tar.gz"
+            INFO "download java done"
+        fi
     else
         FATAL "no support java version"
     fi
@@ -134,17 +147,27 @@ else
     if [[ $JAVA_VERSION == "7u79" ]]
     then
         INFO "expect install java version $JAVA_VERSION"
-        #wget --no-cookies --no-check-certificate --header "Cookie:
-        #gpw_e24=http%3A%2F%2Fwww.oracle.com%2F;
-        #oraclelicense=accept-securebackup-cookie"
-        #"http://download.oracle.com/otn-pub/java/jdk/7u79-b15/jdk-7u79-linux-i586.tar.gz"
+        if [[ -f $PACKEGE_PATH/jdk-$JAVA_VERSION-linux-i586.tar.gz ]]; then
+            INFO "java tar package has been download, skip"
+        else
+            INFO "begin download java ...."
+            wget --no-cookies --no-check-certificate --header "Cookie: \
+            gpw_e24=http%3A%2F%2Fwww.oracle.com%2F;                    \
+            oraclelicense=accept-securebackup-cookie"                  \
+            "http://download.oracle.com/otn-pub/java/jdk/7u79-b15/jdk-7u79-linux-i586.tar.gz"
+        fi
     elif [[ $JAVA_VERSION == "8u60" ]]
     then
         INFO "expect install java version $JAVA_VERSION"
-        #wget --no-cookies --no-check-certificate --header "Cookie:
-        #gpw_e24=http%3A%2F%2Fwww.oracle.com%2F;
-        #oraclelicense=accept-securebackup-cookie"
-        #"http://download.oracle.com/otn-pub/java/jdk/8u60-b27/jdk-8u60-linux-i586.tar.gz"
+        if [[ -f $PACKEGE_PATH/jdk-$JAVA_VERSION-linux-i586.tar.gz ]]; then
+            INFO "java tar package has been download, skip"
+        else
+            INFO "begin download java ...."
+            wget --no-cookies --no-check-certificate --header "Cookie: \
+            gpw_e24=http%3A%2F%2Fwww.oracle.com%2F;                    \
+            oraclelicense=accept-securebackup-cookie"                  \
+            "http://download.oracle.com/otn-pub/java/jdk/8u60-b27/jdk-8u60-linux-i586.tar.gz"
+        fi
 
     else
         FATAL "no support java version"
@@ -167,7 +190,6 @@ else
     JAVA_DIR=`ls $JAVA_PREFIX | grep jdk`
     WARN "jdk has been extaracted at $JAVA_PREFIX" && FORCE_MODE
 fi
-
 
 #Install Java with Alternatives
 
@@ -225,22 +247,16 @@ mkdir -p $RC_DIR
 #in /etc/environment
 if  grep "JAVA_HOME" $RC_FILE; then
    WARN "JAVA_HOME has be configed"
-   if $FORCE_MODE
-   then
-       sed -i "s/JAVA_HOME.*/JAVA_HOME=$JAVA_PATH/"  $RC_FILE
-       sed -i "s/JRE_HOME.*/JRE_HOME=$JAVA_PATH/jre/" $RC_FILE
-   else
-       exit 1
-   fi
+   INFO "run 'echo \$JAVA_HOME'"
+   INFO "    if echo \$JAVA_HOME is expected, skip it"
+   INFO "    else delete JAVA_HOME from $RC_FILE, run this shell again"
+   exit 1
 elif grep "JRE_HOME" $RC_FILE ; then
    WARN "JRE_HOME has be configed"
-   if $FORCE_MODE
-   then
-       sed -i "s/JAVA_HOME.*/JAVA_HOME=$JAVA_PATH/"  $RC_FILE
-       sed -i "s/JRE_HOME.*/JRE_HOME=$JAVA_PATH/jre/" $RC_FILE
-   else
-       exit 1
-   fi
+   INFO "run echo \$JRE_HOME"
+   INFO "    if echo \$JRE_HOME is expected, skip it"
+   INFO "    else delete JRE_HOME from $RC_FILE, run this shell again"
+   exit 1
 else
 
 cat >> $RC_FILE <<EOF
