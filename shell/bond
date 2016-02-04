@@ -1,0 +1,117 @@
+#! /bin/bash
+
+#============================================================================
+#    Mode 0 (balance-rr)  Round-robin策略，这个模式具备负载均衡和容错能力, 但需要"Switch"支援及设定。
+#    Mode 1 (active-backup)  主备策略，在绑定中只有一个网卡被激活，其他处于备份状态
+#    Mode 2 (balance-xor)  XOR策略，通过源MAC地址与目的MAC地址做异或操作选择slave网卡
+#    Mode 3 (broadcast)  广播，在所有的网卡上传送所有的报文
+#    Mode 4 (802.3ad)  IEEE 802.3ad 动态链路聚合。创建共享相同的速率和双工模式的聚合组
+#    Mode 5 (balance-tlb)  Adaptive transmit load balancing
+#    Mode 6 (balance-alb)  平衡负载模式，有自动备援，不必"Switch"支援及设定。
+#============================================================================
+#
+#   mode=0 : 中断任意一条链路或恢复链路，网络0丢包
+#   优点 : 流量提高1倍
+#   缺点 : 需要接入同一交换机做聚合配置，无法保证物理交换机高可用(Cisco似乎有解决方案？）
+#
+#   mode=1 : 中断任意一条链路丢失1-3个包(秒)，恢复链路时0丢包
+#   优点 : 交换机无需配置
+#   缺点 : 如上
+#
+#   mode=6 : 中断任意一条链路0丢包，恢复链路时丢失10-15个包(秒)
+#   优点 : 交换机无需配置，流量提高1倍
+#   缺点 : 恢复链路时丢包时间过长
+#
+# 详细的说明参考内核文档 https://www.kernel.org/doc/Documentation/networking/bonding.txt
+#============================================================================
+
+#TODO
+#1. 必须是 root 权限
+
+#================================================
+#              Optional
+#================================================
+#立即关闭禁用NetworkManager并禁用开机自启动
+#/etc/init.d/NetworkManager stop
+#chkconfig NetworkManager off
+#/etc/init.d/network restart
+#
+##立即关闭iptables并禁用开机自启动
+#/etc/init.d/iptables stop
+#chkconfig iptables off
+#
+##立即关闭selinux并永久禁用
+#setenforce 0
+#sed -i ‘s/SELINUX=enforcing/SELINUX=disabled/‘ /etc/selinux/config
+
+#修改主机名**
+#vi /etc/sysconfig/network
+#
+#NETWORKING=yes
+#HOSTNAME=namenode01
+#
+##刷新生效
+#hostname namnode01
+#source /etc/sysconfig/network
+
+BOND_NAME=bond0
+BOND_IP="10.3.3.214"
+BOND_NETMASK="255.255.255.0"
+BOND_GATEWAY="10.3.3.1"
+BOND_MODE=6
+BOND_ETH1=eth0
+BOND_ETH2=eth1
+
+cd /etc/sysconfig/network-scripts
+
+#编辑eth0
+cat > ifcfg-$BOND_ETH1 << EOF
+DEVICE=$BOND_ETH1
+ONBOOT=yes
+BOOTPROTO=none
+USERCTL=no
+MASTER=$BOND_NAME
+EOF
+
+#编辑eth2
+cat > ifcfg-$BOND_ETH2 << EOF
+DEVICE=$BOND_ETH2
+ONBOOT=yes
+BOOTPROTO=none
+USERCTL=no
+MASTER=$BOND_NAME
+EOF
+
+#编辑bond0
+cat > ifcfg-$BOND_NAME << EOF
+DEVICE=$BOND_NAME
+TYPE=Ethernet
+ONBOOT=yes
+BOOTPROTO=none
+IPADDR=$BOND_IP
+NETMASK=$BOND_NETMASK
+GATEWAY=$BOND_GATEWAY
+IPV6INIT=no
+USERCTL=no
+EOF
+
+#设置bond参数，注意 mode 选择
+cat > /etc/modprobe.conf << EOF
+alias $BOND_NAME bonding
+options $BOND_NAME miimon=100 mode=$BOND_MODE
+EOF
+
+#加入开机自启动参数
+cat >> /etc/rc.local  << EOF
+ifenslave $BOND_NAME $BOND_ETH1 $BOND_ETH2
+EOF
+
+modprobe bonding
+
+#重启网卡
+service network restart
+
+cat /proc/net/bonding/$BOND_NAME
+
+#使绑定网卡立即生效
+ifenslave bond0 eth0 eth2
