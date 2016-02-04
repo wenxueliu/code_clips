@@ -1,0 +1,41 @@
+#! /bin/bash
+
+#=============================================
+#        CPU
+#=============================================
+cat /proc/cpuinfo |grep "model name"|uniq|cut -f2 -d:
+
+#计算时间越短越好
+time echo "scale=500;4*a(1)"|bc -l -q
+
+#=============================================
+#        Disk
+#=============================================
+#   以10,000 rpm 300 GB SAS硬盘为例，机型为IBM x3650 M4，Raid参数如下
+#
+#    1.Read Policy：Ahead （控制器缓存读策略：预读）
+#    2.Write Policy：Write Back with BBU（控制器缓存写策略：有电池备份时回写）
+#    3.IO Policy: Direct（IO策略：直接）
+#    4.Drive Cache：disable （硬盘缓存：禁用）
+#
+#    Raid 	Read(MB) 	Write(MB)
+#    Raid 1 	170 	130
+#    Raid 5 	350 	250
+#    Raid 10 	300 	215
+#=============================================
+
+#读性能
+for i in `seq 1 3`; do
+    #清空缓存
+    sync; echo 3 > /proc/sys/vm/drop_caches
+    #测试读性能
+    hdparm -t /dev/sda
+done
+
+#测试写入性能
+time dd if=/dev/zero of=/tmp/speed bs=1M count=2K conv=fsync;rm /tmp/speed
+time dd if=/dev/zero of=/tmp/speed bs=2M count=2K conv=fsync;rm /tmp/speed
+time dd if=/dev/zero of=/tmp/speed bs=4M count=2K conv=fsync;rm /tmp/speed
+
+
+
