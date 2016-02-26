@@ -1,0 +1,8 @@
+#! /bin/bash
+
+#depend on the ssh to dst ip time of taken
+
+dst_ip=$1
+
+ssh-copy-id root@$dst_ip
+current_time=`date +'%D %H:%M:%S'` && ssh root@$dst_ip "hwclock --set --date=\"$current_time\"; hwclock --hctosys; hwclock --show ;date;"
