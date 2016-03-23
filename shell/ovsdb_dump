@@ -1,0 +1,11 @@
+#! /bin/bash
+
+db_path=/etc/openvswitch/conf.db
+dump_path=/tmp/ovs_db_file
+db_lines=`cat $db_path | wc -l`
+for i in `seq 1 $db_lines`; do
+    num=$(($i%2))
+    if [[ $num -eq 0 ]]; then
+        sed -n "${i}p" $db_path | python -m json.tool >> $dump_path
+    fi
+done
