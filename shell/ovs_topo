@@ -1,0 +1,250 @@
+#! /bin/bash
+
+# REFERENCE
+# man 5 ovs-vswitchd.conf.db
+
+# NOTE
+# ovs-2.3.1 port_name can not be to long.
+# for example core1-patch-agg1 and core-patch-agg2 will be the same port.
+
+#default
+protocols="OpenFlow13"
+
+cores=("0ovs0" "core1")
+aggs=("1agg" "2agg" "3agg" "4agg")
+
+core_prefix="core"
+agg_prefix="agg"
+tor_prefix="tor"
+
+
+pod=2
+core_size=$(($pod * 2))
+agg_size=$(($pod * 2))
+tor_size=$(($pod * 2))
+
+#for i in `seq 1 $pod`; do
+#    sudo ovs-vsctl add-br ${core_prefix}+$i
+#done
+#
+#for i in `seq 1 $agg_size`; do
+#    sudo ovs-vsctl add-br ${agg_prefix}+$i
+#done
+#
+#for i in `seq 1 $tor_size`; do
+#    sudo ovs-vsctl add-br ${tor_prefix}+$i
+#done
+#
+#
+#for i in `seq 1 $pod`; do
+#    sudo ovs-vsctl add-br ${core_prefix}+$i
+#done
+
+#ovs-vsctl add-port br0 patch-to-ovsbr
+#ovs-vsctl set Interface patch-to-ovsbr type=patch
+#ovs-vsctl set Interface patch-to-ovsbr options:peer=patch-to-br0
+#ovs-vsctl add-port ovsbr patch-to-br0
+
+if [[ $UID != 0 ]]; then
+    echo " This script neeeds to be run with sudo, like this:"
+    echo -e "\n  sudo $0 $*\n"
+    exit 1
+fi
+
+create_sw_pair() {
+    switch1=$1
+    switch2=$2
+
+    switch1_port=${switch1}-to-${switch2}
+    switch2_port=${switch2}-to-${switch1}
+
+    switch1_dpid=$3
+    switch2_dpid=$4
+
+    switch1_ofport=$5
+    switch2_ofport=$6
+
+    #set -x
+    if ! `sudo ovs-vsctl br-exists $switch1`; then
+        sudo ovs-vsctl add-br $switch1 -- set Bridge $switch1 fail-mode=secure
+        sudo ovs-vsctl set Bridge $switch1 other_config:datapath-id=$switch1_dpid
+        sudo ovs-vsctl set Bridge $switch1 protocols=$protocols
+    fi
+
+    port_exist=`sudo ovs-vsctl port-to-br $switch1_port`
+    if [[ -z $port_exist ]]; then
+        sudo ovs-vsctl add-port $switch1 $switch1_port
+    else
+        echo "add pair to switch between $switch1 and $switch2, but $switch1_port exist"
+        exit 1
+    fi
+
+    if ! `sudo ovs-vsctl br-exists $switch2`; then
+        sudo ovs-vsctl add-br $switch2  -- set Bridge $switch2 fail-mode=secure
+        sudo ovs-vsctl set Bridge $switch2 other_config:datapath-id=$switch2_dpid
+        ovs-vsctl set Bridge $switch2 protocols=$protocols
+    fi
+
+    port_exist=`sudo ovs-vsctl port-to-br $switch2_port`
+    if [[ -z $port_exist ]]; then
+        sudo ovs-vsctl add-port $switch2 $switch2_port
+    else
+        echo "add pair to switch between $switch1 and $switch2, but $switch2_port exist"
+        exit 1
+    fi
+
+    if [ -n $switch2_ofport ];then
+        sudo ovs-vsctl set Interface $switch2_port ofport_request=$switch2_ofport
+    fi
+    #sudo ovs-vsctl set Interface $switch2_port type=patch
+    #sudo ovs-vsctl set Interface $switch2_port options:peer=$switch1_port
+    sudo ovs-vsctl set Interface $switch2_port type=patch options:peer=$switch1_port
+
+    if [ -n $switch1_ofport ];then
+        sudo ovs-vsctl set Interface $switch1_port ofport_request=$switch1_ofport
+    fi
+    #sudo ovs-vsctl set Interface $switch1_port type=patch
+    #sudo ovs-vsctl set Interface $switch1_port options:peer=$switch2_port
+    sudo ovs-vsctl set Interface $switch1_port type=patch options:peer=$switch2_port
+}
+
+add_sw() {
+    bridge=$1
+    bridge_dpid=$2
+    bridge_protocol=$3
+    bridge_protocol=${bridge_protocol:-$protocols}
+    bridge_ip=$4
+    bridge_network=$5
+
+    sudo ovs-vsctl add-br $bridge -- set Bridge $bridge fail-mode=secure
+    sudo ovs-vsctl set Bridge $bridge other_config:datapath-id=$bridge_dpid
+    sudo ovs-vsctl set Bridge $bridge protocols=$protocols
+    if [ $bridge_ip ]; then
+        ifconfig $bridge $bridge_ip netmask 255.255.255.0
+        route add -net $bridge_network netmask 255.255.255.0 dev $bridge
+    fi
+}
+
+set_sw_ip() {
+    bridge=$1
+    bridge_ip=$2
+    bridge_network=$3
+    ifconfig $bridge $bridge_ip netmask 255.255.255.0
+    route add -net $bridge_network netmask 255.255.255.0 dev $bridge
+}
+
+set_sw_controller() {
+    bridge=$1
+    controller_ip=$2
+    controller_port=$3
+    controller_port=${controller_port:-6633}
+    ovs-vsctl set-controller $bridge tcp:$controller_ip:$controller_port
+}
+
+clear_sw() {
+    bridge=$1
+    sudo ovs-vsctl del-br $bridge
+}
+
+#for iface in ${interface[*]}; do
+#    echo "setup $iface"
+#    ifdown $iface
+#    ifup $iface
+#done
+
+#ovs-vsctl --if-exists del-br $bridge
+#ovs-vsctl add-br $bridge -- set Bridge $bridge fail-mode=secure
+##ovs-vsctl set Bridge $bridge protocols=$protocols
+#ovs-vsctl set Bridge $bridge other_config:datapath-id=$datapath_id
+#
+#ofport=1
+#for iface in ${interface[*]}; do
+#    echo "add $iface to $bridge"
+#    ovs-vsctl add-port $bridge $iface -- set Interface $iface ofport_request=$ofport
+#    #ovs-vsctl mod-port $bridge $iface up
+#    ofport=$(( $ofport + 1))
+#done
+#
+#ifconfig $bridge $bridge_ip netmask 255.255.255.0
+#route add -net $bridge_network netmask 255.255.255.0 dev $bridge
+#
+#ovs-vsctl set-controller $bridge tcp:$controller_ip:$controller_port
+#sudo ovs-vsctl show
+
+#LLDP
+#sudo ovs-ofctl add-flow ovs-switch "priority=1,dl_type=0x88CC,actions=controller"
+#ARP
+#sudo ovs-ofctl add-flow ovs-switch "priority=1,dl_type=0x806,nw_dst=10.1.2.11,actions=controller"
+#sudo ovs-ofctl add-flow ovs-switch "priority=1,dl_type=0x806,nw_dst=10.1.2.100,actions=controller"
+#ICMP
+#sudo ovs-ofctl add-flow ovs-switch "priority=1,dl_type=0x806,nw_proto=1,nw_dst=10.1.2.11,actions=controller"
+#Drop
+#sudo ovs-ofctl add-flow ovs-switch "priority=0,,actions=drop"
+
+create() {
+    core1_dpid="0000000000000001"
+    core2_dpid="0000000000000002"
+    agg1_dpid="0000000000000003"
+    agg2_dpid="0000000000000004"
+    agg3_dpid="0000000000000005"
+    agg4_dpid="0000000000000006"
+    tor1_dpid="0000000000000007"
+    tor2_dpid="0000000000000008"
+    tor3_dpid="0000000000000009"
+    tor4_dpid="000000000000000a"
+
+    create_sw_pair agg1 core1 $agg1_dpid $core1_dpid 1 1
+    create_sw_pair agg1 core2 $agg1_dpid $core2_dpid 2 1
+
+    create_sw_pair agg2 core1 $agg2_dpid $core1_dpid 1 2
+    create_sw_pair agg2 core2 $agg2_dpid $core2_dpid 2 2
+
+    create_sw_pair agg3 core1 $agg3_dpid $core1_dpid 1 3
+    create_sw_pair agg3 core2 $agg3_dpid $core2_dpid 2 3
+
+    create_sw_pair agg4 core1 $agg4_dpid $core1_dpid 1 4
+    create_sw_pair agg4 core2 $agg4_dpid $core2_dpid 2 4
+
+    create_sw_pair tor1 agg1 $tor1_dpid $agg1_dpid 1 3
+    create_sw_pair tor1 agg2 $tor1_dpid $agg2_dpid 2 3
+
+    create_sw_pair tor2 agg1 $tor2_dpid $agg1_dpid 1 4
+    create_sw_pair tor2 agg2 $tor2_dpid $agg2_dpid 2 4
+
+    create_sw_pair tor3 agg3 $tor3_dpid $agg3_dpid 1 3
+    create_sw_pair tor3 agg4 $tor3_dpid $agg4_dpid 2 3
+
+    create_sw_pair tor4 agg3 $tor4_dpid $agg3_dpid 1 4
+    create_sw_pair tor4 agg4 $tor4_dpid $agg4_dpid 2 4
+
+    set_sw_controller core1 127.0.0.1 6653
+    set_sw_controller core2 127.0.0.1 6653
+    set_sw_controller agg1 127.0.0.1 6653
+    set_sw_controller agg2 127.0.0.1 6653
+    set_sw_controller agg3 127.0.0.1 6653
+    set_sw_controller agg4 127.0.0.1 6653
+    set_sw_controller tor1 127.0.0.1 6653
+    set_sw_controller tor2 127.0.0.1 6653
+    set_sw_controller tor3 127.0.0.1 6653
+    set_sw_controller tor4 127.0.0.1 6653
+}
+
+clearall() {
+    clear_sw core1
+    clear_sw core2
+    clear_sw agg1
+    clear_sw agg2
+    clear_sw agg3
+    clear_sw agg4
+    clear_sw tor1
+    clear_sw tor2
+    clear_sw tor3
+    clear_sw tor4
+}
+
+main() {
+    create
+    #clearall
+}
+
+main
