@@ -1,0 +1,28 @@
+#! /bin/bash
+
+INFO() {
+    echo $*
+}
+
+virtual_support=`egrep -c '(vmx|svm)' /proc/cpuinfo`
+if [[ $virtual_support != 0 ]]; then
+    INFO "cpu virautlisation support"
+else
+    INFO "cpu virautlisation doesn't support, enable it in the system BIOS !!!"
+    exit 1
+fi
+
+arch=`arch`
+
+if [[ $arch == "x86_64" ]]; then
+    INFO "OS arch $arch"
+else
+    INFO "os arch $arch, will support in the future"
+    exit 1
+fi
+
+sudo apt-get -y install qemu-kvm libvirt-bin qemu-system virt-manager bridge-utils
+
+sudo virsh -c qemu:///system list
+
+kvm-ok
