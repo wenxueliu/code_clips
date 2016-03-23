@@ -9,3 +9,10 @@ for i in `seq 1 $db_lines`; do
         sed -n "${i}p" $db_path | python -m json.tool >> $dump_path
     fi
 done
+
+#man ovs-vswitchd.conf.db
+sudo ovs-vsctl list Bridge
+sudo ovs-vsctl list Port
+sudo ovs-vsctl list Interface
+sudo ovs-vsctl list Flow_Table
+sudo ovs-vsctl list QoS
