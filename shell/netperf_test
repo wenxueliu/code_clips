@@ -1,0 +1,10 @@
+#! /bin/bash
+echo "being test" >> result
+netperf -H 10.1.2.15 -p 5000 -l 10 -t TCP_CRR -- -m 64 -M 64 >> result 2>&1 &
+netperf -H 10.1.2.15 -p 5001 -l 10 -t TCP_CRR -- -m 64 -M 64 >> result 2>&1 &
+netperf -H 10.1.2.15 -p 5002 -l 10 -t TCP_CRR -- -m 64 -M 64 >> result 2>&1 &
+netperf -H 10.1.2.15 -p 5003 -l 10 -t TCP_CRR -- -m 64 -M 64 >> result 2>&1 &
+netperf -H 10.1.2.15 -p 5004 -l 10 -t TCP_CRR -- -m 64 -M 64 >> result 2>&1 &
+netperf -H 10.1.2.15 -p 5005 -l 10 -t TCP_CRR -- -m 64 -M 64 >> result 2>&1 &
+netperf -H 10.1.2.15 -p 5006 -l 10 -t TCP_CRR -- -m 64 -M 64 >> result 2>&1 &
+netperf -H 10.1.2.15 -p 5007 -l 10 -t TCP_CRR -- -m 64 -M 64 >> result 2>&1 &
