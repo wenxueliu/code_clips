@@ -2,8 +2,11 @@ package org.wenxueliu.test;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.Arrays;
-import java.util.HashMap; import java.util.HashSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.UUID;
 import java.util.Map;
 import java.lang.IndexOutOfBoundsException;
@@ -35,8 +38,15 @@ import org.wenxueliu.demotask.DemoExecutor;
 import org.wenxueliu.classloader.MyClassLoader;
 import org.wenxueliu.pdfbox.PDFEditor;
 import org.wenxueliu.sizeof.ObjectSize;
+import org.wenxueliu.zookeeper.ZKMap;
+import org.wenxueliu.dery.DatabaseManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import org.apache.curator.RetryPolicy;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.retry.ExponentialBackoffRetry;
 /**
  *
  */
@@ -48,6 +58,141 @@ import org.slf4j.LoggerFactory;
 public class Example {
 
     private static Logger logger = LoggerFactory.getLogger(Example.class);
+
+    void testForIn() {
+        System.out.println("test for in of null");
+        List<String> list = null;
+        for (String str : list) {
+            System.out.println(str);
+        }
+    }
+
+    void testSystemCopyOf() {
+        List<String> src = new ArrayList<String>();
+        System.out.println(src.size() + " list to array  " + src.toArray(new String[src.size()]).length);
+    }
+
+    void testZookeeper() {
+        CuratorFramework client = null;
+        try {
+            String connectionString = "192.168.0.134:2181";
+
+            HashMap<String, String> topoMap = new HashMap<String, String>();
+
+            String cluster1     = "/a5/cluster/1";
+            topoMap.put(cluster1 + "/name", "c1");
+            topoMap.put(cluster1 + "/type", "cluster");
+
+            String c1a1         = cluster1 + "/a5/1";
+            topoMap.put(c1a1 + "/name", "c1a1");
+            topoMap.put(c1a1 + "/controller", "10.1.3.1:6633");
+            topoMap.put(c1a1 + "/ovs", "10.1.3.1");
+
+            String c1a2         = cluster1 + "/a5/2";
+            topoMap.put(c1a2 + "/name", "c1a2");
+            topoMap.put(c1a2 + "/controller", "10.1.2.2:6633");
+            topoMap.put(c1a2 + "/ovs", "10.1.2.2");
+
+            String c1p1         = cluster1 + "/pools" + "/1";
+            topoMap.put(c1p1 + "/name", "c1p1");
+            topoMap.put(c1p1 + "/mac", "00:00:00:00:00;01");
+            topoMap.put(c1p1 + "/ip", "10.1.2.13");
+            topoMap.put(c1p1 + "/port", "8000");
+            topoMap.put(c1p1 + "/protocol", "tcp");
+            topoMap.put(c1p1 + "/lbmethod", "rr");
+            topoMap.put(c1p1 + "/type", "follower");
+            String c1p1servers = c1p1 + "/servers";
+            topoMap.put(c1p1servers + "/1", "1");
+            topoMap.put(c1p1servers + "/2", "2");
+
+            String p1b1         = cluster1 + "/servers" + "/1";
+            topoMap.put(p1b1 + "/name", "1");
+            topoMap.put(p1b1 + "/mac", "00:00:00:00:00:02");
+            topoMap.put(p1b1 + "/ip", "10.1.2.3");
+            topoMap.put(p1b1 + "/port", "80");
+            topoMap.put(p1b1 + "/protocol", "tcp");
+            topoMap.put(p1b1 + "/state", "1");
+            topoMap.put(p1b1 + "/pool", "1");
+
+            String p1b2         = cluster1 + "/servers" + "/2";
+            topoMap.put(p1b2 + "/name", "2");
+            topoMap.put(p1b2 + "/mac", "00:00:00:00:00:03");
+            topoMap.put(p1b2 + "/ip", "10.1.2.4");
+            topoMap.put(p1b2 + "/port", "80");
+            topoMap.put(p1b2 + "/protocol", "tcp");
+            topoMap.put(p1b2 + "/state", "1");
+            topoMap.put(p1b2 + "/pool", "1");
+
+            String cluster2     = "/a5/cluster/2";
+            topoMap.put(cluster2 + "/name", "c2");
+            topoMap.put(cluster2 + "/type", "ha");
+
+            String p2b1         = cluster2 + "/servers" + "/1";
+            topoMap.put(p2b1 + "/name", "1");
+            topoMap.put(p2b1 + "/mac", "00:00:00:00:00:02");
+            topoMap.put(p2b1 + "/ip", "10.1.2.3");
+            topoMap.put(p2b1 + "/port", "80");
+            topoMap.put(p2b1 + "/protocol", "tcp");
+            topoMap.put(p2b1 + "/state", "1");
+            topoMap.put(p2b1 + "/pool", "1");
+
+            String c2a1         = cluster2 + "/a5/1";
+            topoMap.put(c2a1 + "/name", "c2a1");
+            topoMap.put(c2a1 + "/controller", "10.1.3.2:6633");
+            topoMap.put(c2a1 + "/ovs", "10.1.3.2");
+
+            client = CuratorFrameworkFactory.builder()
+                .connectString(connectionString)
+                .retryPolicy(new ExponentialBackoffRetry(1000, 3))
+                .connectionTimeoutMs(3000)
+                .sessionTimeoutMs(3000)
+                .build();
+            client.start();
+
+            Iterator<Map.Entry<String, String>> iter = topoMap.entrySet().iterator();
+            while(iter.hasNext()) {
+                Map.Entry<String, String> entry = iter.next();
+                client.create().creatingParentsIfNeeded().forPath(entry.getKey(), entry.getValue().getBytes());
+                //client.create().forPath(entry.getKey(), entry.getValue().getBytes());
+            }
+
+            iter = topoMap.entrySet().iterator();
+            while(iter.hasNext()) {
+                Map.Entry<String, String> entry = iter.next();
+                byte[] data = client.getData().forPath(entry.getKey());
+                System.out.println(entry.getKey() + "-->" + data);
+            }
+
+            //while(iter.hasNext()) {
+            //    Map.Entry<String, String> entry = iter.next();
+            //    client.delete().forPath(entry.getKey());
+            //    Stat state = client.checkExists().forPath(entry.getKey());
+            //    System.out.println(entry.getKey() + "state -->" + state);
+            //}
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (client != null) {
+                client.close();
+            }
+        } finally {
+            if (client != null) {
+                client.close();
+            }
+        }
+    }
+
+    void testZKMap() {
+       ZKMap.test();
+    }
+
+    void testDery() {
+        try {
+            DatabaseManager.initDatabase("test", "a5", "a5", true);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     void ObjectSizeTest() {
         ObjectSize.testSize();
@@ -304,25 +449,65 @@ public class Example {
         System.out.println("Insert ArrayList Time: " + (System.currentTimeMillis() - start));
     }
 
+    public class Cluster {
+        protected Long id; // the lowest id of the nodes
+        protected Map<Long, Set<String>> links; // set of links connected to a node.
+
+        public Cluster() {
+            id = new Long(1);
+            links = new HashMap<Long, Set<String>>();
+        }
+
+        public Long getId() {
+            return id;
+        }
+
+        public void setId(Long id) {
+            this.id = id;
+        }
+
+        void add(Long n) {
+            if (links.containsKey(n) == false) {
+                links.put(n, new HashSet<String>());
+    			if (id == 0 || n < id)
+    				id = n ;
+            }
+        }
+
+        @Override
+        public int hashCode() {
+            return (int) (id + id >>>32);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+
+            Cluster other = (Cluster) obj;
+            return (this.id.equals(other.id));
+        }
+
+        public String toString() {
+            return "[Cluster id=" + id.toString() + ", " + links.keySet() + "]";
+        }
+    }
 
 
     public void HashMapTest() {
         System.out.println("------ HashMapTest --------");
-        HashMap<String, String> strMap = new HashMap<String, String>();
-        strMap.put("a", "1");
-        System.out.println(strMap.put("a", "2"));
-        System.out.println(strMap.put("b", "2"));
-        System.out.println(strMap.put(null, "2"));
-        System.out.println(strMap.put(null, null));
+        Cluster cluster = new Cluster();
+        HashMap<String, Cluster> strMap = new HashMap<String, Cluster>();
+        cluster.add(new Long(1));
+        strMap.put("1", cluster);
+        System.out.println("before modify " + strMap.get("1").toString());
+        cluster.add(new Long(2));
 
-        String v = strMap.get("a");
-        v = "3";
-        System.out.println("modify test: " + strMap.get("a"));
-
-
-        System.out.println(strMap.remove("a"));
-        System.out.println(strMap.remove("c"));
-        System.out.println(strMap.remove(null));
+        System.out.println("after modify " + strMap.get("1").toString());
     }
     //public void TestException() throws IndexOutOfBoundsException
     public void TestException(List<String> list)
@@ -506,7 +691,13 @@ public class Example {
         //e.ClassLoaderTest();
         //e.StrTest();
         //e.pdfboxTest();
-        e.ObjectSizeTest();
+        //e.ObjectSizeTest();
+        //e.benchTest();
+        //e.testDery();
+        //e.testZookeeper();
+        e.testZKMap();
+        //e.testSystemCopyOf();
+        //e.testForIn();
 	}
 
     public void testNode() {
