@@ -17,7 +17,6 @@
 
 package org.wenxueliu.zookeeper;
 
-//import org.projectfloodlight.openflow.types.DatapathId;
 import org.projectfloodlight.openflow.types.OFPort;
 import org.projectfloodlight.openflow.types.U64;
 import org.projectfloodlight.openflow.types.DatapathId;
@@ -28,6 +27,7 @@ import com.google.common.primitives.Ints;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
@@ -38,10 +38,16 @@ import java.io.ObjectOutput;
 import java.io.IOException;
 
 public class Link implements Comparable<Link> {
+    //@JsonSerialize(using = DPIDSerializer.class)
+    @JsonDeserialize(using = DPIDDeserializer.class)
     private DatapathId src;
+    @JsonDeserialize(using = OFPortDeserializer.class)
     private OFPort srcPort;
+    @JsonDeserialize(using = DPIDDeserializer.class)
     private DatapathId dst;
+    @JsonDeserialize(using = OFPortDeserializer.class)
     private OFPort dstPort;
+    @JsonDeserialize(using = U64Deserializer.class)
     private U64 latency; /* we intentionally exclude the latency from hashcode and equals */
 
     public Link(DatapathId srcId, OFPort srcPort, DatapathId dstId, OFPort dstPort, U64 latency) {

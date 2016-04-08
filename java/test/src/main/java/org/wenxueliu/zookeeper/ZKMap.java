@@ -168,15 +168,15 @@ public class ZKMap<K, V> {
 
         zkmap.testKeyConvert(link);
         zkmap.testValueConvert(info);
-        //zkmap.put(link, info);
-        //LinkInfo newInfo = zkmap.get(link);
-        //System.out.println("origin " + info);
-        //System.out.println("new --- " + newInfo);
-        //System.out.println("origin equals to new " + newInfo.equals(info));
-        //System.out.println("origin link " + link);
-        //for (Link l : zkmap.keySet()) {
-        //    System.out.println("new link " + l);
-        //    System.out.println("new link equals origin" + l.equals(link));
-        //}
+        zkmap.put(link, info);
+        LinkInfo newInfo = zkmap.get(link);
+        System.out.println("origin " + info);
+        System.out.println("new --- " + newInfo);
+        System.out.println("origin equals to new " + newInfo.equals(info));
+        System.out.println("origin link " + link);
+        for (Link l : zkmap.keySet()) {
+            System.out.println("new link " + l);
+            System.out.println("new link equals origin" + l.equals(link));
+        }
     }
 }
