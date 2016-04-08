@@ -30,6 +30,7 @@ import org.wenxueliu.concurrent.ThreadTest;
 import org.wenxueliu.concurrent.MyThreadLocal;
 import org.wenxueliu.concurrent.MyThreadLocalError;
 import org.wenxueliu.concurrent.MyThreadLocalPlus;
+import org.wenxueliu.concurrent.BenchTest;
 import org.wenxueliu.demotask.DemoExecutor;
 import org.wenxueliu.classloader.MyClassLoader;
 import org.wenxueliu.pdfbox.PDFEditor;
@@ -444,12 +445,42 @@ public class Example {
     //    System.out.println(s4.status());
     //}
 
+    void benchTest() {
+        BenchTest bench = new BenchTest();
+        bench.genKeys("10.1.2.1", "10.1.2.60", 1, 6000);
+        logger.info("gen keys:" + bench.getKeySize() + " done\n begin test ....\n");
+        //bench.testWithMap();
+        bench.testWithSSDB();
+        bench.testWithRedis();
+        logger.info("begin test ....\n");
+    }
+
+    void byteTest() {
+        byte[] bytes = new byte[] { -127, -128, -1, 0, 1, 2, 3, 100, 126, 127 };
+        int len = bytes.length;
+        char[] chars = new char[len];
+        for (int i = 0; i < len; i++) {
+            chars[i] = (char)(bytes[i] & 0xff);
+        }
+        System.out.println("old bytes " + Arrays.toString(bytes));
+        System.out.println("chars " + new String(chars));
+
+        byte[] newBytes = new byte[len];
+        for (int i = 0; i < len; i++) {
+            newBytes[i] = (byte)chars[i];
+        }
+
+        System.out.println("new bytes " + Arrays.toString(newBytes));
+
+    }
+
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
 
         Example e = new Example();
+        //e.byteTest();
         //e.RefCopyTest();
         //e.AnnotationTest();
         //e.FileIteratorTest("/home/wenxueliu/dic.txt");
