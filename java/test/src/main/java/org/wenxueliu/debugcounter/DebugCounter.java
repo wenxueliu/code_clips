@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.Sets;
+//import com.google.common.collect.Sets;
 
 //import net.floodlightcontroller.debugcounter.web.DebugCounterRoutable;
 //import net.floodlightcontroller.restserver.IRestApiService;
@@ -360,13 +360,13 @@ public class DebugCounter implements IDebugCounterService {
        // include a counter that has been enabled and is present in the global set.
        // We need to sync thread-local currently enabled set of counterIds with
        // the global set.
-       Sets.SetView<Integer> sv = Sets.difference(currentCounters, thisset);
-       for (int counterId : sv) {
-           if (thiscounters[counterId] != null) {
-               thiscounters[counterId].enabled = true;
-               thisset.add(counterId);
-           }
-       }
+       //Sets.SetView<Integer> sv = Sets.difference(currentCounters, thisset);
+       //for (int counterId : sv) {
+       //    if (thiscounters[counterId] != null) {
+       //        thiscounters[counterId].enabled = true;
+       //        thisset.add(counterId);
+       //    }
+       //}
    }
 
    @Override
