@@ -49,19 +49,17 @@ typedef struct {
 void *thread_main(void *arg) {
     thread *thread = arg;
 
-    //struct addrinfo hint = malloc(sizeof(struct addrinfo*));
-    //struct addrinfo *result, *rp;
-    //memset(&hint,0,sizeof(hint));
-    //hint.ai_flags    = 0;
-    //hint.ai_family   = AF_INET;
-    //hint.ai_socktype = SOCK_STREAM;
-    //hint.ai_protocol = 0;
-	//hint.ai_canonname = NULL;
-	//hint.ai_addr = NULL;
-	//hint.ai_next = NULL;
+    //struct addrinfo hints, *result;
+    //struct addrinfo *rp;
+	//memset(&result, 0, sizeof(result));
+	//memset(&hints, 0, sizeof(hints));
+    //hints.ai_flags    = 0;
+    //hints.ai_family   = AF_INET;
+    //hints.ai_socktype = SOCK_STREAM;
+    //hints.ai_protocol = 0;
 
     //int s;
-    //if ((s = getaddrinfo(thread->host, thread->port, &hint, &result)) != 0) {
+    //if ((s = getaddrinfo(thread->host, thread->port, &hints, &result)) != 0) {
     //    char *msg = strerror(errno);
     //    printf("getaddrinfo %s %s\n error: %s", thread->host, thread->port, gai_strerror(s));
     //    exit(EXIT_FAILURE);
@@ -125,7 +123,7 @@ int get_vaild_int(const char *str_num) {
     int vaild_int = strtol(str_num, &enstr, 10);
 
     errno = 0;
-    if (errno != 0 && vaild_int == 0 ||
+    if ((errno != 0 && vaild_int == 0) ||
         (errno == ERANGE && (vaild_int == LONG_MAX || vaild_int == LONG_MIN))) {
         fprintf(stderr, "str to int error: %s", strerror(errno));
         exit(EXIT_FAILURE);
@@ -202,5 +200,7 @@ int main(int argc, char *argv[]) {
         thread *t = &threads[i];
         pthread_join(t->thread, NULL);
     }
+    free(cfg);
+    free(threads);
     return 0;
 }
