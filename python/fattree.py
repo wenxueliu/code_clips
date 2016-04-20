@@ -63,7 +63,7 @@ class Fattree(Topo):
             #else:
             #    print "dpid isn't enough, fix it"
             self.dpid += 1
-            switch_list.append(self.addSwitch(level + str(index), dpid=self.dpidFrom(self.dpid)))
+            switch_list.append(self.addSwitch(str(index) + level, dpid=self.dpidFrom(self.dpid)))
         #for x in xrange(1, number+1):
         #    PREFIX = str(level) + "00"
         #    if x >= int(10):
@@ -184,7 +184,7 @@ def createTopo(pod, density, ip="127.0.0.1", port=6653, bw_c2a=0.2, bw_a2e=0.1, 
     net.stop()
 
 if __name__ == '__main__':
-    setLogLevel('info')
+    setLogLevel('debug')
     if os.getuid() != 0:
         logger.debug("You are NOT root")
     elif os.getuid() == 0:
