@@ -171,3 +171,7 @@ MAC: ping -D -s <size> <host>
 Windows: ing -f -l <sizela <host>
 
 ====================================================================
+
+但是最近发现一个问题，当要查找的字符串是Unicode编码的时候，这种方式只能查找ansi的字符串，遇到Unicode的字符串查找不到 替换为如下方式查找
+
+   find . |xargs strings -e l -f |grep "文字"
