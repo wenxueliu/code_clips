@@ -1,6 +1,6 @@
 package org.wenxueliu.debugcounter;
 
-import net.floodlightcontroller.debugcounter.DebugCounter.DebugCounterInfo;
+import org.wenxueliu.debugcounter.DebugCounter.DebugCounterInfo;
 
 import java.util.List;
 
