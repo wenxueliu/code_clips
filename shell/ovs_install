@@ -60,3 +60,20 @@ restorecon -Rv /etc/openvswitch
 systemctl start openvswitch.service
 chkconfig openvswitch on
 ovs-vsctl -V
+
+
+#================================= CentOS 6.7
+yum install gcc make python-devel openssl-devel kernel-devel graphviz \
+       kernel-debug-devel autoconf automake rpm-build redhat-rpm-config \
+       libtool
+[root@r002 openvswitch-2.3.2]# cd /lib/modules/2.6.32-573.el6.x86_64/
+[root@r002 2.6.32-573.el6.x86_64]# ls -l build
+lrwxrwxrwx. 1 root root 46 Jan  5 18:42 build -> ../../../usr/src/kernels/2.6.32-573.el6.x86_64
+[root@r002 2.6.32-573.el6.x86_64]# rm build
+rm: remove symbolic link `build'? y
+[root@r002 2.6.32-573.el6.x86_64]# ln -s /usr/src/kernels/2.6.32-573.12.1.el6.x86_64 build
+[root@r004 openvswitch-2.3.2]# uname -a
+Linux r002 2.6.32-573.el6.x86_64 #1 SMP Thu Jul 23 15:44:03 UTC 2015 x86_64 x86_64 x86_64 GNU/Linux
+[root@r002 ~]# ls /usr/src/kernels/2.6.32-573.12.1.el6.x86_64
+[root@r004 openvswitch-2.3.2]# cp rhel/openvswitch-kmod.files /root/rpmbuild/SOURCES/
+[root@r002 ~]# cp ovs/openvswitch-2.3.2.tar.gz rpmbuild/SOURCES
