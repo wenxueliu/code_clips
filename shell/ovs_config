@@ -24,7 +24,7 @@ for iface in ${interface[*]}; do
 done
 
 ovs-vsctl --if-exists del-br $bridge
-ovs-vsctl add-br $bridge
+ovs-vsctl add-br $bridge -- set Bridge $bridge fail-mode=secure
 #ovs-vsctl set Bridge $bridge protocols=$protocols
 ovs-vsctl set Bridge $bridge other_config:datapath-id=$datapath_id
 
@@ -32,6 +32,7 @@ ofport=1
 for iface in ${interface[*]}; do
     echo "add $iface to $bridge"
     ovs-vsctl add-port $bridge $iface -- set Interface $iface ofport_request=$ofport
+    #ovs-vsctl mod-port $bridge $iface up
     ofport=$(( $ofport + 1))
 done
 
