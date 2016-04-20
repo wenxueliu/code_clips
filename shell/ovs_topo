@@ -181,7 +181,7 @@ clear_sw() {
 #Drop
 #sudo ovs-ofctl add-flow ovs-switch "priority=0,,actions=drop"
 
-create() {
+create_fattree() {
     core1_dpid="0000000000000001"
     core2_dpid="0000000000000002"
     agg1_dpid="0000000000000003"
@@ -229,7 +229,7 @@ create() {
     set_sw_controller tor4 127.0.0.1 6653
 }
 
-clearall() {
+clear_fattree() {
     clear_sw core1
     clear_sw core2
     clear_sw agg1
@@ -242,9 +242,71 @@ clearall() {
     clear_sw tor4
 }
 
-main() {
-    create
-    #clearall
+create_clos() {
+    stage1_1_dpid="0000000000000001"
+    stage1_2_dpid="0000000000000002"
+    stage2_1_dpid="0000000000000021"
+    stage2_2_dpid="0000000000000022"
+    stage2_3_dpid="0000000000000023"
+    stage3_1_dpid="0000000000000031"
+    stage3_2_dpid="0000000000000032"
+    stage3_3_dpid="0000000000000033"
+
+    create_sw_pair s11 s21 $stage1_1_dpid $stage2_1_dpid 1 1
+    create_sw_pair s11 s22 $stage1_1_dpid $stage2_2_dpid 2 1
+    create_sw_pair s11 s23 $stage1_1_dpid $stage2_3_dpid 3 1
+
+    create_sw_pair s12 s21 $stage1_2_dpid $stage2_1_dpid 1 2
+    create_sw_pair s12 s22 $stage1_2_dpid $stage2_2_dpid 2 2
+    create_sw_pair s12 s23 $stage1_2_dpid $stage2_3_dpid 3 2
+
+    create_sw_pair s31 s21 $stage3_1_dpid $stage2_1_dpid 1 3
+    create_sw_pair s31 s22 $stage3_1_dpid $stage2_2_dpid 2 3
+    create_sw_pair s31 s23 $stage3_1_dpid $stage2_3_dpid 3 3
+
+    create_sw_pair s32 s21 $stage3_2_dpid $stage2_1_dpid 1 4
+    create_sw_pair s32 s22 $stage3_2_dpid $stage2_2_dpid 2 4
+    create_sw_pair s32 s23 $stage3_2_dpid $stage2_3_dpid 3 4
+
+    set_sw_controller s11 127.0.0.1 6653
+    set_sw_controller s12 127.0.0.1 6653
+    set_sw_controller s21 127.0.0.1 6653
+    set_sw_controller s22 127.0.0.1 6653
+    set_sw_controller s23 127.0.0.1 6653
+    set_sw_controller s31 127.0.0.1 6653
+    set_sw_controller s32 127.0.0.1 6653
 }
 
-main
+clear_clos() {
+    clear_sw s11
+    clear_sw s12
+    clear_sw s21
+    clear_sw s22
+    clear_sw s23
+    clear_sw s31
+    clear_sw s32
+}
+
+usage() {
+    echo "Usage:"
+    echo "  $0 create_fattree"
+    echo "  $0 clear_fattree"
+    echo "  $0 create_clos"
+    echo "  $0 clear_clos"
+}
+
+main() {
+    if [[ $1 == "clear_fattree" ]]; then
+        clear_fattree
+    elif [[ $1 == "create_fattree" ]]; then
+        create_fattree
+    elif [[ $1 == "create_clos" ]]; then
+        create_clos
+    elif [[ $1 == "clear_clos" ]]; then
+        clear_clos
+    else
+        usage
+    fi
+}
+
+main $1
