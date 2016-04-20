@@ -6,6 +6,7 @@
 
     <property name="target" location="target"/>
     <property name="build" location="${target}/bin"/>
+    <property name="build-thrift" location="${target}/thrift"/>
     <property name="build-test" location="${target}/bin-test"/>
     <property name="build-coverage" location="${target}/bin-coverage"/>
     <property name="test-output" location="${target}/test"/>
@@ -14,11 +15,14 @@
     <property name="resources" location="src/main/resources/"/>
     <property name="test-resources" location="src/test/resources/"/>
     <property name="source-test" location="src/test/java"/>
-    <property name="python-src" location="src/main/python"/>
     <property name="docs" location="${target}/docs"/>
     <property name="mainclass" value="org.wenxueliu.test.Example"/>
+    <property name="thrift-bin" value="/usr/local/bin/thrift"/>
+    <property name="thrift-client-main" value="org.wenxueliu.thrift.ThriftClient"/>
+    <property name="thrift-server-main" value="org.wenxueliu.thrift.ThriftServer"/>
     <property name="learnJava-jar" location="${target}/learnJava.jar"/>
-    <property name="floodlight-test-jar" location="${target}/floodlight-test.jar"/>
+    <property name="thrift-client.jar" location="${target}/thrift-client.jar"/>
+    <property name="thrift-server.jar" location="${target}/thrift-server.jar"/>
     <property name="thrift.dir" value="${basedir}/src/main/thrift"/>
     <property name="thrift.out.dir" value="lib/gen-java"/>
     <property name="ant.build.javac.source" value="1.7"/>
@@ -52,6 +56,8 @@
     	<include name="jackson-annotations-2.4.4.jar"/>
     	<include name="netty-all-4.0.31.Final.jar"/>
 
+        <include name="libthrift-0.9.3.jar"/>
+
         <!-- kyro
     	<include name="kryo-3.0.4-20151022.204923-5.jar"/>
     	<include name="objenesis-2.1.jar"/>
@@ -61,12 +67,25 @@
 
     </patternset>
 
+    <patternset id="thrift.lib">
+        <include name="libthrift-0.9.3.jar"/>
+        <include name="slf4j-api-1.6.4.jar"/>
+        <include name="logback-classic-1.0.0.jar"/>
+        <include name="logback-core-1.0.0.jar"/>
+    </patternset>
+
     <path id="classpath">
         <fileset dir="${lib.dir}">
             <patternset refid="lib"/>
             <!--
             <include name="**/*.jar"/>
             -->
+        </fileset>
+    </path>
+
+    <path id="thrift.classpath">
+        <fileset dir="${lib.dir}">
+            <patternset refid="thrift.lib"/>
         </fileset>
     </path>
 
@@ -107,25 +126,58 @@
         <mkdir dir="${classes.dir}"/>
         <mkdir dir="${lib.dir}"/>
         -->
+        <mkdir dir="${thrift.out.dir}"/>
         <mkdir dir="${build}"/>
         <mkdir dir="${target}/lib"/>
+        <mkdir dir="${build-thrift}"/>
         <!--
         <mkdir dir="${build-test}"/>
-        <mkdir dir="${thrift.out.dir}"/>
         <mkdir dir="${test-output}"/>
+        -->
+    </target>
+
+    <target name="gen-thrift" depends="init">
+        <echo message="Running thrift on '${thrift.dir}'"/>
+        <apply executable="${thrift-bin}">
+	        <fileset dir="${thrift.dir}" casesensitive="yes">
+	          <include name="**/*.thrift"/>
+	        </fileset>
+	        <arg value="--strict"/>
+	        <arg value="-v"/>
+	        <arg value="--gen"/>
+	        <arg value="java"/>
+	        <arg value="-o"/>
+	        <arg value="${thrift.out.dir}/.."/>
+        </apply>
+        <echo message="Adding @SuppressWarning annotations"/>
+        <!--
+        <replaceregexp byline="true">
+	        <regexp pattern="^public "/>
+	        <substitution expression='@SuppressWarnings("all") public '/>
+	        <fileset id="thrift.output.files" dir="${thrift.out.dir}/..">
+	          <include name="**/*.java"/>
+	        </fileset>
+        </replaceregexp>
         -->
     </target>
 
     <target name="compile" depends="init" description="Compiles into the output directories">
         <javac includeAntRuntime="false"
             classpathref="classpath"
-            srcdir="${source}"
+            srcdir="${source}:${thrift.out.dir}"
             debug="true"
             destdir="${build}">
         </javac>
         <copy todir="${build}">
             <fileset dir="${resources}" />
         </copy>
+
+        <javac includeAntRuntime="false"
+            classpathref="thrift.classpath"
+            srcdir="${thrift.out.dir}"
+            debug="true"
+            destdir="${build-thrift}">
+        </javac>
     </target>
 
     <target name="package" depends="compile" description="Creates the JAR package files">
@@ -140,11 +192,96 @@
                 <patternset refid="lib"/>
             </zipgroupfileset>
         </jar>
+        <!--
+        <jar destfile="${thrift-client.jar}" filesetmanifest="mergewithoutmain">
+            <manifest>
+                <attribute name="Main-Class" value="${thrift-client-main}"/>
+                <attribute name="Class-Path" value="."/>
+            </manifest>
+            <fileset dir="${build}"/>
+            <zipgroupfileset dir="${lib.dir}">
+                <patternset refid="lib"/>
+            </zipgroupfileset>
+        </jar>
+        <jar destfile="${thrift-server.jar}" filesetmanifest="mergewithoutmain">
+            <manifest>
+                <attribute name="Main-Class" value="${thrift-server-main}"/>
+                <attribute name="Class-Path" value="."/>
+            </manifest>
+            <fileset dir="${build}"/>
+            <zipgroupfileset dir="${lib.dir}">
+                <patternset refid="lib"/>
+            </zipgroupfileset>
+        </jar>
+        -->
+        <jar destfile="${thrift-server.jar}" filesetmanifest="mergewithoutmain">
+            <manifest>
+                <attribute name="Main-Class" value="${thrift-server-main}"/>
+                <attribute name="Class-Path" value="."/>
+            </manifest>
+            <fileset dir="${build-thrift}"/>
+            <zipgroupfileset dir="${lib.dir}">
+                <patternset refid="thrift.lib"/>
+            </zipgroupfileset>
+        </jar>
+        <jar destfile="${thrift-client.jar}" filesetmanifest="mergewithoutmain">
+            <manifest>
+                <attribute name="Main-Class" value="${thrift-client-main}"/>
+                <attribute name="Class-Path" value="."/>
+            </manifest>
+            <fileset dir="${build-thrift}"/>
+            <zipgroupfileset dir="${lib.dir}">
+                <patternset refid="thrift.lib"/>
+            </zipgroupfileset>
+        </jar>
     </target>
 
     <target name="clean" description="Delete the output directories">
         <delete dir="${target}"/>
     </target>
+
+    <target name="thrift-server" description="run thrift server">
+        <java fork="true" jar="${thrift-server.jar}" classpathref="thrift.classpath">
+            <jvmarg value="-server"/>
+            <jvmarg value="-Xms500M"/>
+            <jvmarg value="-Xmx500M"/>
+        </java>
+    </target>
+
+    <target name="thrift-client" description="run thrift client">
+        <java fork="true" jar="${thrift-client.jar}" classpathref="thrift.classpath">
+            <jvmarg value="-server"/>
+            <jvmarg value="-Xms500M"/>
+            <jvmarg value="-Xmx500M"/>
+        </java>
+    </target>
+
+    <target name="thrift" description="run thrift server and client">
+        <parallel>
+            <echo>thrift server:</echo>
+            <java fork="true" jar="${thrift-server.jar}" classpathref="thrift.classpath">
+                <jvmarg value="-server"/>
+                <jvmarg value="-Xms500M"/>
+                <jvmarg value="-Xmx500M"/>
+            </java>
+            <sequential>
+                <sleep seconds="2"/>
+                <echo>thrift client :</echo>
+                <java fork="true" jar="${thrift-client.jar}" classpathref="thrift.classpath">
+                    <jvmarg value="-server"/>
+                    <jvmarg value="-Xms500M"/>
+                    <jvmarg value="-Xmx500M"/>
+                </java>
+                <java fork="true" jar="${thrift-client.jar}" classpathref="thrift.classpath">
+                    <jvmarg value="-server"/>
+                    <jvmarg value="-Xms500M"/>
+                    <jvmarg value="-Xmx500M"/>
+                </java>
+            </sequential>
+        </parallel>
+
+    </target>
+
 
     <target name="exec" description="Running programs under Ant">
         <property name="logback.configurationFile" value="./logback.xml" />
