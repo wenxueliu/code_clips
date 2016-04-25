@@ -21,6 +21,7 @@ for iface in ${interface[*]}; do
     echo "setup $iface"
     ifdown $iface
     ifup $iface
+    ifconfig $iface 0 #or in config file
 done
 
 ovs-vsctl --if-exists del-br $bridge
