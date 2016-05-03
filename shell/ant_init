@@ -3,6 +3,7 @@
 package="apache-ant-1.9.6-bin.tar.gz"
 package_dir="apache-ant-1.9.6"
 ANT_PATH="/opt/ant"
+ANT_PREFIX="."
 FORCE_MODE=0
 
 #################################################################
@@ -31,38 +32,44 @@ WARN() {
     ECHO_LOG $LOG_LEVEL_WARN  "WARN" "$1"
 }
 
+if [[ $UID != 0 ]]
+then
+    INFO " This script neeeds to be run with sudo, like this:"
+    echo -e "\n  sudo $0 $*\n"
+    exit 1
+fi
 
 if [[ ! -f $package ]]; then
-    echo "$package doesn't exist, download it ...."
-    wget http://mirrors.cnnic.cn/apache//ant/binaries/$package
+    INFO "$package doesn't exist, download it ...."
+    wget https://archive.apache.org/dist/ant/binaries/$package || exit 2
 fi
 if [[ ! -f KEYS ]]; then
-    echo "KEYS doesn't exist, download it ...."
-    wget https://www.apache.org/dist/ant/KEYS
+    INFO "KEYS doesn't exist, download it ...."
+    wget https://archive.apache.org/dist/ant/KEYS  || exit 2
 fi
 if [[ ! -f ${package}.asc ]]; then
     echo "${package}.asc doesn't exist, download it .... "
-    wget https://www.apache.org/dist/ant/binaries/${package}.asc
+    wget https://archive.apache.org/dist/ant/binaries/${package}.asc  || exit 2
 fi
 gpg --import KEYS
 gpg --verify ${package}.asc
 
 if [[ ! -d ${package_dir} ]]; then
-    tar xvfz apache-ant-1.9.6-bin.tar.gz -C $ANT_PREFIX
+    tar xvfz $package -C $ANT_PREFIX
 fi
 
 #====== config ant ===============
 mkdir -p $ANT_PATH
 if [[ ! -d $ANT_PATH/bin ]]; then
-    cp -r $ANT_PATH/$package_dir/bin/ $ANT_PATH
+    cp -r $ANT_PREFIX/$package_dir/bin/ $ANT_PATH
 else
     INFO "$ANT_PATH/bin exists !, skip"
     INFO "    if $ANT_PATH/bin is expected, skip"
     INFO "    else rm -rf $ANT_PATH/bin, run this shell again"
 fi
 if [[ ! -d $ANT_PATH/lib ]]; then 
-    cp -r $ANT_PATH/$package_dir/lib/ $ANT_PATH
-else 
+    cp -r $ANT_PREFIX/$package_dir/lib/ $ANT_PATH
+else
     INFO "$ANT_PATH/lib exists !!!!!"
     INFO "    if $ANT_PATH/lib is expected, skip"
     INFO "    else rm -rf $ANT_PATH/lib, run this shell again"
@@ -96,6 +103,4 @@ source $RC_FILE
 [[ -z ${ANT_HOME} ]] && WARN 'Need to set $ANT_HOME environment variable' && FORCE_MODE
 [[ ! -x ${ANT_HOME}/bin/ ]] && WARN "Cannot find an executable ant at path ${ANT_HOME}/bin/java check your ANT_HOME" && FORCE_MODE
 
-INFO "======================================================================="
 INFO 'run echo $ANT_HOME, if echo $ANT_HOME is null, relogin to make sure the ANT_HOME is set'
-INFO "======================================================================="
