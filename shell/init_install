@@ -7,18 +7,33 @@ then
     exit 1
 fi
 
-if [[ -f /etc/redhat_release ]]; then
+if [[ -f /etc/redhat-release ]]; then
     rpm -aq | grep yum | xargs rpm -e --nodeps
-    wget http://mirrors.163.com/centos/6/os/x86_64/Packages/python-iniparse-0.3.1-2.1.el6.noarch.rpm
-    wget http://mirrors.163.com/centos/6/os/x86_64/Packages/yum-metadata-parser-1.1.2-16.el6.x86_64.rpm
-    wget http://mirrors.163.com/centos/6/os/x86_64/Packages/yum-3.2.29-69.el6.centos.noarch.rpm
-    wget http://mirrors.163.com/centos/6/os/x86_64/Packages/yum-plugin-fastestmirror-1.1.30-30.el6.noarch.rpm
+    wget http://mirrors.163.com/centos/6/os/x86_64/Packages/python-iniparse-0.3.1-2.1.el6.noarch.rpm | \
+    curl http://mirrors.163.com/centos/6/os/x86_64/Packages/python-iniparse-0.3.1-2.1.el6.noarch.rpm \
+        -o python-iniparse-0.3.1-2.1.el6.noarch.rpm
+
+    wget
+    http://mirrors.163.com/centos/6/os/x86_64/Packages/yum-metadata-parser-1.1.2-16.el6.x86_64.rpm |\
+    curl http://mirrors.163.com/centos/6/os/x86_64/Packages/yum-metadata-parser-1.1.2-16.el6.x86_64.rpm \
+        -o yum-metadata-parser-1.1.2-16.el6.x86_64.rpm
+
+    wget
+    http://mirrors.163.com/centos/6/os/x86_64/Packages/yum-3.2.29-69.el6.centos.noarch.rpm |\
+    curl http://mirrors.163.com/centos/6/os/x86_64/Packages/yum-3.2.29-69.el6.centos.noarch.rpm \
+        -o yum-3.2.29-69.el6.centos.noarch.rpm
+
+    wget http://mirrors.163.com/centos/6/os/x86_64/Packages/yum-plugin-fastestmirror-1.1.30-30.el6.noarch.rpm |\
+    curl http://mirrors.163.com/centos/6/os/x86_64/Packages/yum-plugin-fastestmirror-1.1.30-30.el6.noarch.rpm \
+        -o yum-plugin-fastestmirror-1.1.30-30.el6.noarch.rpm
+
     rpm -ivh python-iniparse-0.3.1-2.1.el6.noarch.rpm
     rpm -ivh yum-metadata-parser-1.1.2-16.el6.x86_64.rpm
     rpm -ivh yum-3.2.29-69.el6.centos.noarch.rpm yum-plugin-fastestmirror-1.1.30-30.el6.noarch.rpm
-    mv /etc/yum.repos.d/rhel-source.repo /etc/yum.repos.d/rhel-source.repo.bak
     cd /etc/yum.repos.d/
-    wget http://mirrors.163.com/.help/CentOS6-Base-163.repo
+    for f in `ls`; do mv $f $f.bak ; done
+    wget http://mirrors.163.com/.help/CentOS6-Base-163.repo | \
+    curl http://mirrors.163.com/.help/CentOS6-Base-163.repo -o CentOS6-Base-163.repo
     rpm --import http://mirrors.163.com/centos/RPM-GPG-KEY-CentOS-6
     sed -i "s/\$releasever/6/" CentOS6-Base-163.repo
     yum clean all
