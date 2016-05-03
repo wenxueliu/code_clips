@@ -81,6 +81,11 @@ fi
 
 INFO "operate system : `cat /etc/redhat-release`" 
 
+if [[ $OS == "RedHat" ]]; then
+    sudo yum install wget
+elif [[ $OS == "Debian" ]]; then
+    sudo apt-get install wget
+fi
 ###################################################################
 #                   Java (1.7.0_79 OR 1.8.0_60)
 # Only Linux RedHat support
@@ -154,7 +159,9 @@ else
             wget --no-cookies --no-check-certificate --header "Cookie: \
             gpw_e24=http%3A%2F%2Fwww.oracle.com%2F;                    \
             oraclelicense=accept-securebackup-cookie"                  \
-            "http://download.oracle.com/otn-pub/java/jdk/7u79-b15/jdk-7u79-linux-i586.tar.gz"
+            "http://download.oracle.com/otn-pub/java/jdk/7u79-b15/jdk-7u79-linux-i586.tar.gz" \
+            || (INFO "download java package error, retry it." && exit 1)
+
         fi
     elif [[ $JAVA_VERSION == "8u60" ]]
     then
@@ -166,7 +173,8 @@ else
             wget --no-cookies --no-check-certificate --header "Cookie: \
             gpw_e24=http%3A%2F%2Fwww.oracle.com%2F;                    \
             oraclelicense=accept-securebackup-cookie"                  \
-            "http://download.oracle.com/otn-pub/java/jdk/8u60-b27/jdk-8u60-linux-i586.tar.gz"
+            "http://download.oracle.com/otn-pub/java/jdk/8u60-b27/jdk-8u60-linux-i586.tar.gz" \
+            || (INFO "download java package error, retry it." && exit 1)
         fi
 
     else
@@ -274,7 +282,7 @@ source $RC_FILE
 [[ ! -x ${JAVA_HOME}/bin/java ]] && WARN "Cannot find an executable JVM at path ${JAVA_HOME}/bin/java check your JAVA_HOME" && FORCE_MODE
 
 INFO "======================================================================="
-INFO "if 'echo $JAVA_HOME' is null, relogin to make sure the java home is set"
+INFO "if '\$JAVA_HOME=$JAVA_HOME' is null, relogin to make sure the java home is set"
 INFO "======================================================================="
 
 ###########################################################################
