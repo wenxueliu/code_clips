@@ -1,79 +1,134 @@
+#! /bin/bash
+
+#Author : Wenxue Liu
+#Update : 2016-05-03
+
+OVS="openvswitch-2.3.2"
+OVS_TAR=$OVS.tar.gz
+OVS_PREFIX="."
+OVS_LOG=ovs_install.log
+
+
+#################################################################
+#		   LOGGER
+#################################################################
+LOG_LEVEL_ON=0
+LOG_LEVEL_TRACE=1
+LOG_LEVEL_DEBUG=2
+LOG_LEVEL_INFO=3
+LOG_LEVEL_WARN=4
+LOG_LEVEL_ERROR=5
+LOG_LEVEL_FATAL=6
+LOG_LEVEL_OFF=7
+
+LOG_LEVEL=$LOG_LEVEL_INFO
+
+ECHO_LOG() {
+    [ "$1" -ge $LOG_LEVEL ] && echo -e "\033[31m $2:\033[0m $3" >&2
+}
+
+TRACE() {
+    ECHO_LOG $LOG_LEVEL_TRACE "TRACE" "$1"
+}
+
+DEBUG() {
+    ECHO_LOG $LOG_LEVEL_DEBUG "DEBUG" "$1"
+}
+
+INFO() {
+    ECHO_LOG $LOG_LEVEL_INFO "INFO" "$1"
+}
+
+WARN() {
+    ECHO_LOG $LOG_LEVEL_WARN  "WARN" "$1"
+}
+
+ERROR() {
+    ECHO_LOG $LOG_LEVEL_ERROR "ERROR" "$1"
+}
+
+FATAL() {
+    ECHO_LOG $LOG_LEVEL_FATAL "FATAL" "$1" && exit 1
+}
+
+#########################################################################
+
+if [[ $UID != 0 ]]
+then
+    INFO " This script neeeds to be run with sudo, like this:"
+    echo -e "\n  sudo $0 $*\n"
+    exit 1
+fi
+
+PLATFORM=`uname`
+ARCH=`uname -p`
+OS="UnKnow"
+
+if [[ -f /etc/debian_version ]]
+then
+    OS="Debian"
+elif [[ -f /etc/redhat-release ]]
+then
+    OS="RedHat"
+else
+    OS="UnKnow"
+fi
+
+INFO "operate system : `cat /etc/redhat-release`"
+
 #http://www.docoreos.com/?p=79
 #
 #
 #------------- Ubuntu 14.04 ------------------------
-OVS="openvswitch-2.3.1"
-OVS_TAR=$OVS.tar.gz
-apt-get install -y build-essential fakeroot debhelper \
-                    autoconf automake bzip2 libssl-dev \
-                    openssl graphviz python-all procps \
-                    python-qt4 python-zopeinterface \
-                    python-twisted-conch libtool
+
 if [  -f $OVS_TAR ]
 then
     echo "$OVS_TAR has exist"
 else
-    wget http://openvswitch.org/releases/$OVS_TAR
+    wget http://openvswitch.org/releases/$OVS_TAR || exit 2
 fi
 if [  -d $OVS ]
 then
    rm -r $OVS
 fi
-tar -zxvf  $OVS_TAR
-cd $OVS/
+tar -zxvf  $OVS_TAR -C $OVS_PREFIX
+cd $OVS_PREFIX/$OVS/
 
-dpkg-checkbuilddeps
+if [[ $OS == "Debian" ]]; then
+    apt-get install -y build-essential fakeroot debhelper \
+                        autoconf automake bzip2 libssl-dev \
+                        openssl graphviz python-all procps \
+                        python-qt4 python-zopeinterface \
+                        python-twisted-conch libtool
 
-DEB_BUILD_OPTIONS='parallel=8 nocheck' fakeroot debian/rules binary
+    dpkg-checkbuilddeps
 
-if [ $? ne 0 ]
-then
-   exit 1
+    DEB_BUILD_OPTIONS='parallel=8 nocheck' fakeroot debian/rules binary
+
+    if [ $? ne 0 ]
+    then
+       exit 1
+    fi
+
+    cd ..
+    sudo dpkg -i openvswitch-common_2.3.1-1_amd64.deb openvswitch-switch_2.3.1-1_amd64.deb
+
+elif [[ $OS == "RedHat" ]]; then
+
+    #================================= CentOS 6.7
+    yum install -y gcc make python-devel openssl-devel kernel-devel graphviz \
+           kernel-debug-devel autoconf automake rpm-build redhat-rpm-config \
+           libtool | tee -a $OVS_LOG
+
+    lsmod | grep bridge && rmmod bridge
+    ./configure | tee -a $OVS_LOG
+    make | tee -a $OVS_LOG
+    sudo make install | tee -a $OVS_LOG
+    sudo make modules_install | tee -a $OVS_LOG
 fi
 
-cd ..
-sudo dpkg -i openvswitch-common_2.3.1-1_amd64.deb openvswitch-switch_2.3.1-1_amd64.deb
-
-ovs-vsctl -V
-lsmod | grep openv
-ps -ef | grep [o]vs
-
-#------------- CentOS 7------------------------
-#https://n40lab.wordpress.com/2015/06/28/centos-7-installing-openvswitch-2-3-2-lts/
-
-yum -y install wget openssl-devel gcc make python-devel openssl-devel kernel-devel graphviz kernel-debug-devel autoconf automake rpm-build redhat-rpm-config libtool
-adduser ovs
-su - ovs
-
-mkdir -p ~/rpmbuild/SOURCES
-wget http://openvswitch.org/releases/openvswitch-2.3.2.tar.gz
-cp openvswitch-2.3.2.tar.gz ~/rpmbuild/SOURCES/
-tar xfz ~/rpmbuild/SOURCES/openvswitch-2.3.2.tar.gz
-sed 's/openvswitch-kmod, //g' openvswitch-2.3.2/rhel/openvswitch.spec > openvswitch-2.3.2/rhel/openvswitch_no_kmod.spec
-rpmbuild -bb --nocheck openvswitch-2.3.2/rhel/openvswitch_no_kmod.spec
-
-mkdir /etc/openvswitch
-yum localinstall /home/ovs/rpmbuild/RPMS/x86_64/openvswitch-2.3.2-1.x86_64.rpm
-yum install policycoreutils-python
-semanage fcontext -a -t openvswitch_rw_t "/etc/openvswitch(/.*)?"
-restorecon -Rv /etc/openvswitch
-systemctl start openvswitch.service
-chkconfig openvswitch on
-ovs-vsctl -V
-
-
-#================================= CentOS 6.7
-yum install gcc make python-devel openssl-devel kernel-devel graphviz \
-       kernel-debug-devel autoconf automake rpm-build redhat-rpm-config \
-       libtool
-[root@r002 openvswitch-2.3.2]# cd /lib/modules/2.6.32-573.el6.x86_64/
-[root@r002 2.6.32-573.el6.x86_64]# ls -l build
-lrwxrwxrwx. 1 root root 46 Jan  5 18:42 build -> ../../../usr/src/kernels/2.6.32-573.el6.x86_64
-[root@r002 2.6.32-573.el6.x86_64]# rm build
-rm: remove symbolic link `build'? y
-[root@r002 2.6.32-573.el6.x86_64]# ln -s /usr/src/kernels/2.6.32-573.12.1.el6.x86_64 build
-[root@r004 openvswitch-2.3.2]# uname -a
-Linux r002 2.6.32-573.el6.x86_64 #1 SMP Thu Jul 23 15:44:03 UTC 2015 x86_64 x86_64 x86_64 GNU/Linux
-[root@r002 ~]# ls /usr/src/kernels/2.6.32-573.12.1.el6.x86_64
-[root@r004 openvswitch-2.3.2]# cp rhel/openvswitch-kmod.files /root/rpmbuild/SOURCES/
-[root@r002 ~]# cp ovs/openvswitch-2.3.2.tar.gz rpmbuild/SOURCES
+sudo modprobe openvswitch
+sudo lsmod | grep openvswitch
+sudo modinfo openvswitch
+sudo mkdir -p /usr/local/etc/openvswitch
+sudo /usr/local/bin/ovsdb-tool create /usr/local/etc/openvswitch/conf.db vswitchd/vswitch.ovsschema
