@@ -1,6 +1,8 @@
 #! /bin/bash
 
 #depend on the ssh to dst ip time of taken
+# Q: #/usr/bin/ssh-copy-id: ERROR: No identities found
+# A: run `ssh-keygen`
 
 dst_ip=$1
 
