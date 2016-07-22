@@ -187,6 +187,38 @@ while true; do
 
 #==================================================================
 
+kernal_version=`uname -r`
+machine=`uname -m`
+
+if [[ $UID != 0 ]]
+then
+    INFO " This script neeeds to be run with sudo, like this:"
+    echo -e "\n  sudo $0 $*\n"
+    exit 1
+fi
+
+if [[ -f /etc/debian_version ]]
+then
+    OS="Debian"
+elif [[ -f /etc/redhat-release ]]
+then
+    OS="RedHat"
+else
+    OS="UnKnow"
+fi
+
+if grep "release 6" /etc/redhat-release >> /dev/null;
+then
+    OS_VERSION=7
+elif grep "release 6" /etc/redhat-release >> /dev/null;
+    OS_VERSION=6
+else
+    OS_VERSION="Unknow"
+fi
+
+
+############################################################
+
 时间截转时间
 
 date -d@1234567890
