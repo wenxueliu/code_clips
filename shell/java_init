@@ -7,13 +7,16 @@
 INSTALL_FORCE=true
 JAVA8_VERSION=8u91
 JAVA8_URL=${JAVA8_VERSION}-b14
+JAVA8_MD5="3f3d7d0cd70bfe0feab382ed4b0e45c0"
+JAVA8_PRIORITY=1800911
+
 JAVA7_VERSION=7u79
 JAVA7_URL=${JAVA7_VERSION}-b15
 
 JAVA_VERSION=$JAVA8_VERSION # JAVA_VERSION=8u60
 JAVA_MD5=$JAVA8_MD5
 JAVA_PREFIX="/opt"  # end without "/"
-PRIORITY=18091
+PRIORITY=$JAVA8_PRIORITY
 PACKEGE_PATH="."
 
 #################################################################
@@ -139,7 +142,7 @@ then
             "http://download.oracle.com/otn-pub/java/jdk/${JAVA7_URL}/$JAVA_PACKAGE"
             INFO "download java done"
         fi
-        PACKAGE_MD5=``md5sum $JAVA_PACKAGE | awk '{ print $1 }'``
+        PACKAGE_MD5=`md5sum $JAVA_PACKAGE | awk '{ print $1 }'`
         if [[ $PACKAGE_MD5 == $JAVA_MD5 ]]; then
             DEBUG "md5 checksum successfully"
         else
@@ -147,7 +150,6 @@ then
         fi
     elif [[ $JAVA_VERSION == $JAVA8_VERSION ]]
     then
-        JAVA_MD5=""
         INFO "expect install java version $JAVA_VERSION"
         if [[ -f $PACKEGE_PATH/$JAVA_PACKAGE ]]; then
             INFO "java tar package has been download, skip"
@@ -159,7 +161,7 @@ then
             "http://download.oracle.com/otn-pub/java/jdk/${JAVA8_URL}/$JAVA_PACKAGE"
             INFO "download java done"
         fi
-        PACKAGE_MD5=``md5sum $JAVA_PACKAGE | awk '{ print $1 }'``
+        PACKAGE_MD5=`md5sum $JAVA_PACKAGE | awk '{ print $1 }'`
         if [[ $PACKAGE_MD5 == $JAVA_MD5 ]]; then
             DEBUG "md5 checksum successfully"
         else
@@ -223,13 +225,17 @@ JAVA_DIR=""
 #TODO jdk is exist
 if ! ls $JAVA_PREFIX | grep jdk >> /dev/null
 then
-    if [[ $ARCH == "x86_64" ]]
+    if [[ $JAVA_VERSION == $JAVA7_VERSION ]]
     then
         tar xzf $JAVA_PACKAGE -C $JAVA_PREFIX
         JAVA_DIR="jdk1.7.0_79"
-    else
+    elif [[ $JAVA_VERSION == $JAVA8_VERSION ]]
+    then
         tar xzf $JAVA_PACKAGE -C $JAVA_PREFIX
         JAVA_DIR="jdk1.8.0_91"
+    else
+        echo "not support java version"
+        exit 1
     fi
 else
     JAVA_DIR=`ls $JAVA_PREFIX | grep jdk`
