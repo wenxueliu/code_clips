@@ -1,5 +1,10 @@
 #! /bin/bash
 
+#============================================
+#　测试除了记录平均值也有记录每次时间, 便于发现诡异问题,
+#  如 https://blog.cloudflare.com/the-story-of-one-latency-spike/
+#
+
 #=============================================
 #        CPU
 #=============================================
@@ -37,5 +42,11 @@ time dd if=/dev/zero of=/tmp/speed bs=1M count=2K conv=fsync;rm /tmp/speed
 time dd if=/dev/zero of=/tmp/speed bs=2M count=2K conv=fsync;rm /tmp/speed
 time dd if=/dev/zero of=/tmp/speed bs=4M count=2K conv=fsync;rm /tmp/speed
 
+cat /etc/redhat-release
 
 
+#systemtap
+# 火焰图
+#
+stap -v histogram-kernel.stp 'kernel.function("net_rx_action)"' 30
+stap -v histogram-kernel.stp 'kernel.function("tcp_collapse")' 300
