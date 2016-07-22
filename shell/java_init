@@ -5,9 +5,15 @@
 
 #TODO getopt  as follow
 INSTALL_FORCE=true
-JAVA_VERSION="7u79" # JAVA_VERSION=8u60
+JAVA8_VERSION=8u91
+JAVA8_URL=${JAVA8_VERSION}-b14
+JAVA7_VERSION=7u79
+JAVA7_URL=${JAVA7_VERSION}-b15
+
+JAVA_VERSION=$JAVA8_VERSION # JAVA_VERSION=8u60
+JAVA_MD5=$JAVA8_MD5
 JAVA_PREFIX="/opt"  # end without "/"
-PRIORITY=170079
+PRIORITY=18091
 PACKEGE_PATH="."
 
 #################################################################
@@ -114,73 +120,104 @@ fi
 
 # Download Java Version
 
+JAVA_PACKAGE=""
 
 if [[ $ARCH == "x86_64" ]]
 then
     INFO "arch :  $ARCH"
-    if [[ $JAVA_VERSION == "7u79" ]]
+    JAVA_PACKAGE=jdk-${JAVA_VERSION}-linux-x64.tar.gz
+    if [[ $JAVA_VERSION == $JAVA7_VERSION ]]
     then
         INFO "expect install java version $JAVA_VERSION"
-        if [[ -f $PACKEGE_PATH/jdk-$JAVA_VERSION-linux-x64.tar.gz ]]; then
+        if [[ -f $PACKEGE_PATH/$JAVA_PACKAGE ]]; then
             INFO "java tar package has been download, skip"
         else
             INFO "begin download java ...."
             wget --no-cookies --no-check-certificate --header "Cookie: \
             gpw_e24=http%3A%2F%2Fwww.oracle.com%2F;                    \
             oraclelicense=accept-securebackup-cookie"                  \
-            "http://download.oracle.com/otn-pub/java/jdk/7u79-b15/jdk-7u79-linux-x64.tar.gz"
+            "http://download.oracle.com/otn-pub/java/jdk/${JAVA7_URL}/$JAVA_PACKAGE"
             INFO "download java done"
         fi
-    elif [[ $JAVA_VERSION == "8u60" ]]
+        PACKAGE_MD5=``md5sum $JAVA_PACKAGE | awk '{ print $1 }'``
+        if [[ $PACKAGE_MD5 == $JAVA_MD5 ]]; then
+            DEBUG "md5 checksum successfully"
+        else
+            ERROR "md5 expect $JAVA_MD5 but the package is $PACKAGE_MD5" && exit 1
+        fi
+    elif [[ $JAVA_VERSION == $JAVA8_VERSION ]]
     then
+        JAVA_MD5=""
         INFO "expect install java version $JAVA_VERSION"
-        if [[ -f $PACKEGE_PATH/jdk-$JAVA_VERSION-linux-x64.tar.gz ]]; then
+        if [[ -f $PACKEGE_PATH/$JAVA_PACKAGE ]]; then
             INFO "java tar package has been download, skip"
         else
             INFO "begin download java ...."
             wget --no-cookies --no-check-certificate --header "Cookie: \
             gpw_e24=http%3A%2F%2Fwww.oracle.com%2F;                    \
             oraclelicense=accept-securebackup-cookie"                  \
-            "http://download.oracle.com/otn-pub/java/jdk/8u60-b27/jdk-8u60-linux-x64.tar.gz"
+            "http://download.oracle.com/otn-pub/java/jdk/${JAVA8_URL}/$JAVA_PACKAGE"
             INFO "download java done"
+        fi
+        PACKAGE_MD5=``md5sum $JAVA_PACKAGE | awk '{ print $1 }'``
+        if [[ $PACKAGE_MD5 == $JAVA_MD5 ]]; then
+            DEBUG "md5 checksum successfully"
+        else
+            ERROR "md5 expect $JAVA_MD5 but the package is $PACKAGE_MD5" && exit 1
         fi
     else
         FATAL "no support java version"
     fi
 else
     INFO "arch :  $ARCH"
-    if [[ $JAVA_VERSION == "7u79" ]]
+    JAVA_PACKAGE=jdk-${JAVA_VERSION}-linux-i586.tar.gz
+    if [[ $JAVA_VERSION == $JAVA7_VERSION ]]
     then
         INFO "expect install java version $JAVA_VERSION"
-        if [[ -f $PACKEGE_PATH/jdk-$JAVA_VERSION-linux-i586.tar.gz ]]; then
+        if [[ -f $PACKEGE_PATH/$JAVA_PACKAGE ]]; then
             INFO "java tar package has been download, skip"
         else
             INFO "begin download java ...."
             wget --no-cookies --no-check-certificate --header "Cookie: \
             gpw_e24=http%3A%2F%2Fwww.oracle.com%2F;                    \
             oraclelicense=accept-securebackup-cookie"                  \
-            "http://download.oracle.com/otn-pub/java/jdk/7u79-b15/jdk-7u79-linux-i586.tar.gz" \
+            "http://download.oracle.com/otn-pub/java/jdk/${JAVA7_URL}/$JAVA_PACKAGE" \
             || (INFO "download java package error, retry it." && exit 1)
 
         fi
-    elif [[ $JAVA_VERSION == "8u60" ]]
+        PACKAGE_MD5=``md5sum $JAVA_PACKAGE | awk '{ print $1 }'``
+        if [[ $PACKAGE_MD5 == $JAVA_MD5 ]]; then
+            DEBUG "md5 checksum successfully"
+        else
+            ERROR "md5 expect $JAVA_MD5 but the package is $PACKAGE_MD5" && exit 1
+        fi
+    elif [[ $JAVA_VERSION == $JAVA8_VERSION ]]
     then
+        #only java 8u91
+        JAVA_MD5=21322b66a0839ffb08d6c45d73ef48b8
         INFO "expect install java version $JAVA_VERSION"
-        if [[ -f $PACKEGE_PATH/jdk-$JAVA_VERSION-linux-i586.tar.gz ]]; then
+        if [[ -f $PACKEGE_PATH/$JAVA_PACKAGE ]]; then
             INFO "java tar package has been download, skip"
         else
             INFO "begin download java ...."
             wget --no-cookies --no-check-certificate --header "Cookie: \
             gpw_e24=http%3A%2F%2Fwww.oracle.com%2F;                    \
             oraclelicense=accept-securebackup-cookie"                  \
-            "http://download.oracle.com/otn-pub/java/jdk/8u60-b27/jdk-8u60-linux-i586.tar.gz" \
+            "http://download.oracle.com/otn-pub/java/jdk/${JAVA8_URL}/$JAVA_PACKAGE" \
             || (INFO "download java package error, retry it." && exit 1)
         fi
-
+        PACKAGE_MD5=``md5sum $JAVA_PACKAGE | awk '{ print $1 }'``
+        if [[ $PACKAGE_MD5 == $JAVA_MD5 ]]; then
+            DEBUG "md5 checksum successfully"
+        else
+            ERROR "md5 expect $JAVA_MD5 but the package is $PACKAGE_MD5" && exit 1
+        fi
     else
         FATAL "no support java version"
     fi
 fi
+
+INFO "download java package at $JAVA_PACKAGE"
 
 JAVA_DIR=""
 #TODO jdk is exist
@@ -188,11 +225,11 @@ if ! ls $JAVA_PREFIX | grep jdk >> /dev/null
 then
     if [[ $ARCH == "x86_64" ]]
     then
-        tar xzf jdk-"$JAVA_VERSION"-linux-x64.tar.gz -C $JAVA_PREFIX
+        tar xzf $JAVA_PACKAGE -C $JAVA_PREFIX
         JAVA_DIR="jdk1.7.0_79"
     else
-        tar xzf jdk-"$JAVA_VERSION"-linux-i586.tar.gz -C $JAVA_PREFIX
-        JAVA_DIR="jdk1.8.0_60"
+        tar xzf $JAVA_PACKAGE -C $JAVA_PREFIX
+        JAVA_DIR="jdk1.8.0_91"
     fi
 else
     JAVA_DIR=`ls $JAVA_PREFIX | grep jdk`
