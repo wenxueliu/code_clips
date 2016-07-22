@@ -41,7 +41,7 @@ ifconfig $bridge $bridge_ip netmask 255.255.255.0
 route add -net $bridge_network netmask 255.255.255.0 dev $bridge
 
 ovs-vsctl set-controller $bridge tcp:$controller_ip:$controller_port
-sudo ovs-vsctl show
+ovs-vsctl show
 
 #LLDP
 #sudo ovs-ofctl add-flow ovs-switch "priority=1,dl_type=0x88CC,actions=controller"
@@ -52,5 +52,3 @@ sudo ovs-vsctl show
 #sudo ovs-ofctl add-flow ovs-switch "priority=1,dl_type=0x806,nw_proto=1,nw_dst=10.1.2.11,actions=controller"
 #Drop
 #sudo ovs-ofctl add-flow ovs-switch "priority=0,,actions=drop"
-
-
