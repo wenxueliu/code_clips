@@ -3,22 +3,23 @@
 exec_mode=$1
 default_core=`cat /proc/cpuinfo | grep processor | wc -l`
 default_core=$(( default_core - 1 ))
+core=3
 core=${core:-$default_core}
-con_begin=${con_begin:-800}
-con_end=${con_end:-1000}
-foot=${foot:-100}
+con_begin=${con_begin:-1}
+con_end=${con_end:-1}
+foot=${foot:-1}
 #the steps must be int
 steps=$(( ($con_end - $con_begin) / $foot + 1 ))
-time_s=${time_s:-100000}
+time_s=${time_s:-200000}
 log_dir=/tmp/ab
-ip="10.9.1.42"
+ip="127.0.0.1"
 port=80
 url="$ip:$port"
 
 #trap "kill $$" TERM EXIT
 
 usage() {
-    echo "$0 start|stop|status|info"
+    echo "$0 start|stop|status|info|clean"
 }
 
 if [[ $# = 0 ]]; then
@@ -129,12 +130,12 @@ abtest__() {
     local time_s=$2
 
     log_name="abtest"
-    for i in `seq 0 $core`; do
+    for i in `seq 1 $core`; do
         log_path=${log_dir}/${log_name}_$i
         #taskset -c $i ab -c $con -t $time_s http://$url/ |tee -a $log_path &
         ab -c $con -n $time_s http://$url/ |tee -a $log_path &
     done
-    local $core_num=0
+    local core_num=0
     for pid in `ps axu | grep [a]b -c | awk '{ print $2 }'`; do 
 	taskset -c $core_num -p $pid
         core_num=$(( $core_num + 1 ))
@@ -144,7 +145,7 @@ abtest__() {
 }
 
 abtest() {
-    for ((con=1; con <=$steps; con++)) {
+    for ((con=0; con <=$steps; con++)) {
         con_cur=$(( $con * $foot + $con_begin))
         abtest__ $con_cur $time_s
     }
