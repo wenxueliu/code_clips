@@ -216,6 +216,8 @@ else
     OS_VERSION="Unknow"
 fi
 
+RELEASE=`rpm -q --whatprovides "redhat-release"`
+OS_VERSION=`rpm -q --qf "%{version}" $pkg`
 
 ############################################################
 
