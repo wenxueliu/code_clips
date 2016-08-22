@@ -1,0 +1,27 @@
+
+LOCAL_SERVER=10.9.1.27
+
+cat /etc/ntp/step-tickers <<EOF
+server $LOCAL_SERVER
+server 0.centos.pool.ntp.org
+server 1.centos.pool.ntp.org
+server 2.centos.pool.ntp.org
+server 3.centos.pool.ntp.org
+EOF
+
+
+echo "SYNC_HWCLOCK=yes" >> /etc/sysconfig/ntpd
+service ntp start
+service ntp status
+ss -aun | grep 123
+
+chkconfig --list ntpd
+chkconfig ntpd on
+chkconfig --list ntpd
+
+ntpq -p
+ntpstat
+ntpstat
+ntpstat
+ntpstat
+ntpstat
