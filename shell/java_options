@@ -1,0 +1,77 @@
+#!/bin/bash
+
+trap ':' INT QUIT TERM PIPE HUP # sends execution to end tracing section
+
+set -x
+function usage {
+	cat <<-END >&2
+    Usage:
+
+    Generate JVM Options First
+
+        java7 -XX:+PrintFlagsFinal > java7_options 2> /dev/null
+        java8 -XX:+PrintFlagsFinal > java8_options 2> /dev/null
+
+        java7 -XX:+UnlockDiagnosticVMOptions -XX:+PrintFlagsFinal > java7_options 2>/dev/null
+        java8 -XX:+UnlockDiagnosticVMOptions -XX:+PrintFlagsFinal > java8_options 2>/dev/null
+
+        java7 -XX:+UnlockDiagnosticVMOptions -XX:+PrintFlagsFinal -XX:+UnlockExperimentalVMOptions > java7_options 2>/dev/null
+        java8 -XX:+UnlockDiagnosticVMOptions -XX:+PrintFlagsFinal -XX:+UnlockExperimentalVMOptions > java8_options 2>/dev/null
+
+    then run
+
+        $0 java7_options java8_options
+END
+	exit
+}
+
+function compare_jvmoptions {
+    java7_options=$1
+    java8_options=$2
+
+    if [[ ! -e $1 || ! -e $2 ]]
+    then
+        echo "error : $1 or $2 file doesn't exist\n"
+        echo ""
+        usage
+    fi
+
+    tmp7="${java7_options}_7tmp"
+    tmp8="${java8_options}_8tmp"
+
+    only_java7_options="only_$java7_options"
+    only_java8_options="only_$java8_options"
+    common_java78_options="common_${java7_options}_${java8_options}"
+
+    awk '{ print $2 }' $java7_options >> $tmp7
+    awk '{ print $2 }' $java8_options >> $tmp8
+    for option in `comm -23 $tmp7 $tmp8`
+    do
+        grep " $option " $java7_options >> $only_java7_options
+    done
+
+    for option in `comm -13 $tmp7 $tmp8 2> /dev/null`
+    do
+        grep " $option " $java8_options >> $only_java8_options
+    done
+
+    for option in `comm -12 $tmp7 $tmp8 2> /dev/null`
+    do
+        grep " $option " $java8_options >> $common_java78_options
+    done
+
+    rm $tmp7 $tmp8
+
+    echo "generate three files:\n"
+    echo "      $only_java7_options : only java 7 JVM options"
+    echo "      $only_java8_options : only java 8 JVM options"
+    echo "      $common_java78_options : the options that java 7 is the same is java 8"
+}
+
+
+if [ $# != 2 ]
+then
+    usage
+else
+    compare_jvmoptions $1 $2
+fi
