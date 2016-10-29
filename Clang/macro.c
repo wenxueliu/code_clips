@@ -41,3 +41,22 @@
 
 #define check_type_match(expr1, expr2)   \
     ((typeof(expr1) *)0 != (typeof(expr2) *)0)
+
+#define BUILD_BUG_ON(condition) ((void)sizeof(char[1 - 2*!!(condition)])) : reference:https://scaryreasoner.wordpress.com/2009/02/28/checking-sizeof-at-compile-time/)
+
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof(*(x)))
+
+/*
+ * This looks more complex than it should be. But we need to
+ * get the type for the ~ right in round_down (it needs to be
+ * as wide as the result!), and we want to evaluate the macro
+ * arguments just once each.
+ */
+#define __round_mask(x, y) ((__typeof__(x))((y)-1))
+#define round_up(x, y) ((((x)-1) | __round_mask(x, y))+1)
+#define round_down(x, y) ((x) & ~__round_mask(x, y))
+
+#define FIELD_SIZEOF(t, f) (sizeof(((t*)0)->f))
+#define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
+#define DIV_ROUND_UP_ULL(ll,d) \
+        ({ unsigned long long _tmp = (ll)+(d)-1; do_div(_tmp, d); _tmp; })
