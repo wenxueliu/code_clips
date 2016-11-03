@@ -121,7 +121,7 @@ elif [[ $OS == "RedHat" ]]; then
            libtool | tee -a $OVS_LOG
 
     lsmod | grep bridge && rmmod bridge
-    ./configure CFLAGS="-Ofast -g" | tee -a $OVS_LOG
+    ./configure CFLAGS="-g" | tee -a $OVS_LOG
     make | tee -a $OVS_LOG
     sudo make install | tee -a $OVS_LOG
     sudo make modules_install | tee -a $OVS_LOG
