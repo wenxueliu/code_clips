@@ -97,6 +97,7 @@ function set_flow_cnt() {
         done
     else
         echo $rps_flow_cnt > /sys/class/net/$iface/queues/rx-0/rps_flow_cnt
+        cat /sys/class/net/$iface/queues/rx-0/rps_flow_cnt
     fi
 }
 
