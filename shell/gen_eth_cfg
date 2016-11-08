@@ -1,0 +1,17 @@
+#! /bin/bash
+
+for ethernet in `cat /etc/udev/rules.d/70-persistent-net.rules | awk -F "," '/^ACTION/{ print $5 $6 }' | awk -F '"' '{ print $2"-"$4 }'`;do
+    eth_mac=`echo $ethernet | awk -F '-' '{ print $1 }'`
+    eth_name=`echo $ethernet | awk -F '-' '{ print $2 }'`
+    eth_uuid=`/usr/bin/uuidgen $eth_name`
+    cat > ifcfg-$eth_name <<EOF
+DEVICE=$eth_name
+HWADDR=$eth_mac
+TYPE=Ethernet
+UUID=$eth_uuid
+DEFROUTE=yes
+ONBOOT=yes
+NM_CONTROLLED=no
+BOOTPROTO=static
+EOF
+done
