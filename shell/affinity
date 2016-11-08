@@ -1,9 +1,9 @@
 #!/bin/bash
 
 INDEX_BEGIN=1
-INDEX_END=3
+INDEX_END=8
 
-err() {
+function err() {
     echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')]: $@" >&2
     exit 1
 }
@@ -55,7 +55,7 @@ function set_hardwareirq() {
             fi
         done
     else
-        local irq=$(grep "${iface}-\|${iface}" /proc/interrupts | cut  -d:  -f1 | sed "s/ //g")
+        local irq=$(grep "${iface}" /proc/interrupts | cut  -d:  -f1 | sed "s/ //g")
         local cpu_index=$((1<<${cpu_index_begin}))
         printf "%x" ${cpu_index} > /proc/irq/${irq}/smp_affinity;
     fi
@@ -66,12 +66,36 @@ function dump_hardwaredirq() {
     local iface=$1
     check_iface $iface
 
-    echo "hardware irq:"
+    echo "${iface} hardware irq config:"
+    local rx=0
     for i in $(grep "${iface}-\|${iface}" /proc/interrupts | cut  -d:  -f1 | sed "s/ //g");do
-        cat /proc/irq/$i/smp_affinity;
+        echo "rx-${rx} $(cat /proc/irq/$i/smp_affinity)"
+        rx=$(($rx+1))
     done
 }
 
+
+function dump_flow_cnt() {
+    local iface=$1
+    check_iface $iface
+
+    local sock_entries=262144
+
+    iface_irq=$(grep "${iface}-" /proc/interrupts | wc -l)
+    if [[ $iface_irq == 0 ]]; then
+        iface_irq=$(grep ${iface} /proc/interrupts | wc -l)
+    fi
+
+    echo "total-flows: $(cat /proc/sys/net/core/rps_sock_flow_entries)"
+
+    if is_multi_queue $iface;then
+        for rx_num in $(seq 0 $(($iface_irq-1))); do
+            echo "rx-${rx_num}-flow $(cat /sys/class/net/$iface/queues/rx-${rx_num}/rps_flow_cnt)"
+        done
+    else
+        cat /sys/class/net/$iface/queues/rx-0/rps_flow_cnt
+    fi
+}
 
 function set_flow_cnt() {
     local iface=$1
@@ -79,7 +103,6 @@ function set_flow_cnt() {
 
     local sock_entries=262144
     echo $sock_entries > /proc/sys/net/core/rps_sock_flow_entries
-    cat /proc/sys/net/core/rps_sock_flow_entries
 
     iface_irq=$(grep "${iface}-" /proc/interrupts | wc -l)
     if [[ $iface_irq == 0 ]]; then
@@ -91,13 +114,8 @@ function set_flow_cnt() {
             #echo $rx_num
             echo $rps_flow_cnt > /sys/class/net/$iface/queues/rx-${rx_num}/rps_flow_cnt
         done
-        for rx_num in $(seq 0 $(($iface_irq-1))); do
-            #echo $rx_num
-            cat /sys/class/net/$iface/queues/rx-${rx_num}/rps_flow_cnt
-        done
     else
         echo $rps_flow_cnt > /sys/class/net/$iface/queues/rx-0/rps_flow_cnt
-        cat /sys/class/net/$iface/queues/rx-0/rps_flow_cnt
     fi
 }
 
@@ -124,17 +142,31 @@ function dump_softirq() {
     local iface=$1
     check_iface $iface
 
-    echo "soft irq:"
+    echo "$iface softirq config:"
     for rx_queue in /sys/class/net/$iface/queues/rx-*; do
-        cat ${rx_queue}/rps_cpus
+        echo "${rx_queue##*/} $(cat ${rx_queue}/rps_cpus)"
     done
+    dump_flow_cnt $iface
+}
+
+usage() {
+    echo "$0 start|info"
 }
 
 function main() {
-    set_softirq "p5p1"
-    dump_softirq "p5p1"
-    set_hardwareirq "p5p1"
-    dump_hardwaredirq "p5p1"
+    exec_mode=$1
+
+    if [[ $exec_mode = "start" ]]; then
+    	set_hardwareirq "p5p1"
+    	dump_hardwaredirq "p5p1"
+    	set_softirq "p5p1"
+    	dump_softirq "p5p1"
+    elif [[ $exec_mode = "info" ]]; then
+    	dump_hardwaredirq "p5p1"
+    	dump_softirq "p5p1"
+    else
+        usage
+    fi
 }
 
 main "$@"
