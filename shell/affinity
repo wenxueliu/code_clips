@@ -38,20 +38,32 @@ function get_irq_num() {
 }
 
 function set_hardwareirq() {
+    if [[ $# < 3 ]];then
+        usage
+    fi
     local iface=$1
     check_iface $iface
 
-    local cpu_index_begin=${INDEX_BEGIN:-1};
-    local cpu_index_end=${INDEX_END:-3};
+    local index_begin=$2
+    local index_end=$3
+    local index_step=1
+    if [[ $# = 4 ]];then
+        index_step=$4
+    fi
+
+    local cpu_index_begin=${index_begin:-0};
+    local cpu_index_end=${index_end:-3};
+    local cpu_index_step=${index_step:-1};
+    local index=${cpu_index_begin}
 
     if is_multi_queue $iface; then
         for irq in $(grep "${iface}-\|${iface}" /proc/interrupts | cut  -d:  -f1 | sed "s/ //g");do
-            local cpu_index=$((1<<${cpu_index_begin}))
             #echo ${cpu_index}
+            cpu_index=$((1<<${index}))
             printf "%x" ${cpu_index} > /proc/irq/${irq}/smp_affinity;
-            cpu_index_begin=$((${cpu_index_begin}+1))
-            if [[ ${cpu_index_begin} -eq ${cpu_index_end}+1 ]]; then
-                cpu_index_begin=1
+            index=$((${index}+${cpu_index_step}))
+            if [[ ${index} -ge ${cpu_index_end}+1 ]]; then
+                index=${cpu_index_begin}
             fi
         done
     else
@@ -120,20 +132,31 @@ function set_flow_cnt() {
 }
 
 function set_softirq() {
+    if [[ $# < 3 ]];then
+        usage
+    fi
     local iface=$1
+    local index_begin=$2
+    local index_end=$3
+    local index_step=1
+    if [[ $# = 4 ]];then
+        index_step=$4
+    fi
     check_iface $iface
 
     set_flow_cnt $iface
 
-    local cpu_index_begin=${INDEX_BEGIN:-1};
-    local cpu_index_end=${INDEX_END:-3};
+    local cpu_index_begin=${index_begin:-0};
+    local cpu_index_end=${index_end:-3};
+    local cpu_index_step=${index_step:-1};
+    local index=${cpu_index_begin}
     for rx_queue in /sys/class/net/${iface}/queues/rx-*; do
-        local cpu_index=$((1<<${cpu_index_begin}))
         #echo ${cpu_index}
+        cpu_index=$((1<<${index}))
         printf "%x" $cpu_index > ${rx_queue}/rps_cpus
-        cpu_index_begin=$((${cpu_index_begin}+1))
-        if [[ ${cpu_index_begin} -eq ${cpu_index_end}+1 ]]; then
-            cpu_index_begin=1
+        index=$((${index}+${cpu_index_step}))
+        if [[ ${index} -ge ${cpu_index_end}+1 ]]; then
+            index=${cpu_index_begin}
         fi
     done
 }
@@ -150,20 +173,33 @@ function dump_softirq() {
 }
 
 usage() {
-    echo "$0 start|info"
+    echo "Usage: "
+    echo "	$0 start iface cpu_index_begin cpu_index_end"
+    echo "	$0 info iface "
+    exit 1
 }
 
 function main() {
-    exec_mode=$1
+    local exec_mode=$1
+    local iface=$2
+    
 
     if [[ $exec_mode = "start" ]]; then
-    	set_hardwareirq "p5p1"
-    	dump_hardwaredirq "p5p1"
-    	set_softirq "p5p1"
-    	dump_softirq "p5p1"
+        if [[ $# != 4 ]];then
+            usage
+        fi
+        local index_begin=$3
+        local index_end=$4
+    	set_hardwareirq ${iface} ${index_begin} ${index_end}
+    	dump_hardwaredirq ${iface}
+    	set_softirq ${iface} ${index_begin} ${index_end}
+    	dump_softirq ${iface}
     elif [[ $exec_mode = "info" ]]; then
-    	dump_hardwaredirq "p5p1"
-    	dump_softirq "p5p1"
+        if [[ $# != 2 ]];then
+            usage
+        fi
+    	dump_hardwaredirq ${iface}
+    	dump_softirq ${iface}
     else
         usage
     fi
