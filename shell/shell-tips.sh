@@ -329,3 +329,19 @@ IO
 
 # make sure file readonly else die
 [ ! -r $FILE ] && { echo "Error - Can not read $FILE file."; exit 3; }
+
+====================================================================
+# Check for programs we'll need.
+search_path () {
+    save_IFS=$IFS
+    IFS=:
+    for dir in $PATH; do
+        IFS=$save_IFS
+        if test -x "$dir/$1"; then
+            return 0
+        fi
+    done
+    IFS=$save_IFS
+    echo >&2 "$0: $1 not found in \$PATH, please install and try again"
+    exit 1
+}
