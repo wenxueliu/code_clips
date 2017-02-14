@@ -26,7 +26,7 @@ done
 
 ovs-vsctl --if-exists del-br $bridge
 ovs-vsctl add-br $bridge -- set Bridge $bridge fail-mode=secure
-#ovs-vsctl set Bridge $bridge protocols=$protocols
+ovs-vsctl set Bridge $bridge protocols=$protocols
 ovs-vsctl set Bridge $bridge other_config:datapath-id=$datapath_id
 
 ofport=1
