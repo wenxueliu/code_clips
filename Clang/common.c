@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include <errno.h>
 
 #define     MAXARGC     50
 #define     WHITE       " \t\n"
@@ -58,6 +59,32 @@ char *xvasprintf(const char *format, va_list args)
     return s;
 }
 
+
+/* Call strerror_r and get the full error message. Allocate memory for the
+ *  * entire string with malloc. Return string. Caller must free string.
+ *   * If malloc fails, return NULL.
+ *    */
+char *all_strerror(int n)
+{
+    char *s;
+    size_t size;
+
+    size = 1024;
+    s = malloc(size);
+    if (s == NULL)
+        return NULL;
+
+    while (strerror_r(n, s, size) == -1 && errno == ERANGE) {
+            size *= 2;
+            s = realloc(s, size);
+            if (s == NULL)
+                return NULL;
+        }
+
+    return s;
+}
+
+
 char *xasprintf(const char *format, ...)
 {
     va_list args;
@@ -68,4 +95,18 @@ char *xasprintf(const char *format, ...)
     va_end(args);
 
     return s;
+}
+
+void test_all_strerror() {
+    for (int i = 1; i < 10; ++i) {
+        int n = i;
+        char *s = all_strerror(n);
+        printf("[%d]: %s\n", n, s);
+        free(s);
+    }
+}
+
+int main(int argc, char **argv)
+{
+    test_all_strerror();
 }
